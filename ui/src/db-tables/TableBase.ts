@@ -1,4 +1,4 @@
-import { getDB, saveDB } from "../Api";
+import { getDB } from "../Api";
 import { getWorkspaceIndexDB } from "./IndexDBUtils";
 import { TableBaseModel } from "../types/dbTypes";
 import { Table, userSettingsTable } from "./WorkspaceDB";
@@ -14,24 +14,6 @@ export class TableBase<T extends TableBaseModel> {
   protected async saveDiskDB() {
     // diable save diskdb
     return;
-    const objs = (await indexdb[this.tableName].toArray()) as TableBaseModel[];
-    const backup: Record<string, TableBaseModel> = {};
-    objs.forEach((f) => {
-      // only tags table is using name as primary key, we either give up backup that table to diskDB
-      // or add a id as primary key to it
-      if (f.id) {
-        backup[f.id] = f;
-      } else if (f.name) {
-        backup[f.name] = f;
-      } else {
-        console.error("TableBaseModel should have id or name");
-      }
-    });
-    try {
-      saveDB(this.tableName, JSON.stringify(backup));
-    } catch (e) {
-      console.error("error saving disk db", e);
-    }
   }
 
   public async add(

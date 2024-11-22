@@ -47,43 +47,6 @@ export function toFileNameFriendly(str: string) {
   return str.trim();
 }
 
-function isValidFileName(fileName: string) {
-  // Check for empty string
-  if (!fileName || fileName.length === 0) {
-    return false;
-  }
-
-  // Windows reserved characters
-  // eslint-disable-next-line no-control-regex
-  const windowsInvalidChars = /[<>:"/\\|?*\x00-\x1F]/;
-  if (windowsInvalidChars.test(fileName)) {
-    return false;
-  }
-
-  // Windows reserved names
-  const windowsReservedNames = /^(con|prn|aux|nul|com[0-9]|lpt[0-9])(\..*)?$/i;
-  if (windowsReservedNames.test(fileName)) {
-    return false;
-  }
-
-  // Check for macOS restricted character (colon)
-  if (fileName.includes(":")) {
-    return false;
-  }
-
-  // Check for trailing periods or spaces (Windows restriction)
-  if (/[. ]$/.test(fileName)) {
-    return false;
-  }
-
-  // Length check (general precaution)
-  // if (fileName.length > 255) {
-  //   return false;
-  // }
-
-  return true;
-}
-
 export function formatTimestamp(
   unixTimestamp: number,
   showHourMinue: boolean = true,

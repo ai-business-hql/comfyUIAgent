@@ -10,6 +10,7 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
+    const [sessionId, setSessionId] = useState<string>();
     const messageDivRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -17,6 +18,17 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
             messageDivRef.current.scrollTop = messageDivRef.current.scrollHeight
         }
     }, [messages])
+    useEffect(() => {
+        let sessionId = localStorage.getItem("sessionId");
+        if (sessionId) {
+            setSessionId(sessionId);
+        } else {
+            sessionId = crypto.randomUUID();
+            setSessionId(sessionId);
+            localStorage.setItem("sessionId", sessionId);
+        }
+
+    }, []);
 
     const handleMessageChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
         setInput(event.target.value);
@@ -104,7 +116,7 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
                     </div>
                 </div>
                 <div className="flex-1 overflow-auto p-4" ref={messageDivRef}>
-                    <div className="grid gap-4">
+                    <div className="grid gap-4" style={{ color: 'gray' }}>
                         {messages.map((message) =>
                         (message.role === 'ai' || message.role === 'tool' ?
                             <div className="flex items-start gap-3" key={message.id}>
@@ -218,7 +230,6 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
                             ) : (
                                 <>
                                     <SendIcon className="h-5 w-5" style={{ color: 'gray' }} />
-                                    {/* <span className="sr-only" style={{ color: 'gray' }}>Send</span> */}
                                 </>
                             )}
                         </button>
