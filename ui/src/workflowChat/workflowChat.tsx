@@ -85,23 +85,21 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
     };
 
     return (
-        <div className="fixed top-0 right-0 h-full w-1/3 max-w-full bg-white shadow-lg dark:bg-gray-950 dark:text-white">
+        <div className="fixed top-0 right-0 h-full w-2/3 max-w-full shadow-lg bg-white "  style={{ backgroundColor: 'white' }}>
             <div className="flex h-full flex-col">
-                <div className="flex items-center justify-between border-b px-4 py-3 dark:border-gray-800">
-                    <h3 className="text-lg font-medium">Chat</h3>
+                <div className="flex items-center justify-between border-b px-4 py-3 border-gray-200" style={{ backgroundColor: 'gray' }}>
+                    <h3 className="text-lg font-medium text-gray-800 dark:text-gray-800">Chat</h3>
                     <div className="flex items-center gap-1">
                         <button 
-                            className="inline-flex items-center justify-center rounded-full p-2 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50"
+                            className="inline-flex items-center justify-center rounded-full bg-gray-100 p-2 hover:bg-gray-200 disabled:opacity-50 dark:bg-gray-100"
                             disabled={messages.length === 0}
                             onClick={handleClearMessages}>
                             <TrashIcon className="h-5 w-5" />
-                            {/* <span className="sr-only">Clear Messages</span> */}
                         </button>
                         <button 
-                            className="inline-flex items-center justify-center rounded-full p-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+                            className="inline-flex items-center justify-center rounded-full bg-gray-100 p-2 hover:bg-gray-200 dark:bg-gray-100"
                             onClick={handleClose}>
                             <XIcon className="h-5 w-5" />
-                            {/* <span className="sr-only">Close</span> */}
                         </button>
                     </div>
                 </div>
@@ -118,27 +116,27 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
                                         height="40"
                                         className="w-full h-full object-cover" 
                                     />
-                                    <div className="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700">
+                                    <div className="absolute inset-0 flex items-center justify-center bg-white">
                                         {message.name ? convertToInitials(message.name) : 'AI'}
                                     </div>
                                 </div>
                                 <div>
                                     <div className="text-sm">{message.name ? message.name : 'Assistant'}</div>
-                                    <div className="rounded-lg bg-gray-100 p-3 text-sm dark:bg-gray-800">
+                                    <div className="rounded-lg bg-gray-100 p-3 text-sm">
                                         {message.toolCalls && Object.keys(message.toolCalls).length > 0 ?
                                             <div>
                                                 {Object.keys(message.toolCalls).map((key) => {
                                                     const toolCall = message.toolCalls[key];
                                                     return (
                                                         <div key={toolCall.toolCallId}>
-                                                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                            <p className="text-xs text-gray-500 ">
                                                                 tool: {toolCall.name}
                                                             </p>
-                                                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                            <p className="text-xs text-gray-500 ">
                                                                 args: {JSON.stringify(toolCall.args)}
                                                             </p>
                                                             {toolCall.result &&
-                                                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                                <p className="text-xs text-gray-500 ">
                                                                     result: {JSON.stringify(toolCall.result)}
                                                                 </p>
                                                             }
@@ -189,7 +187,7 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
                                         <p>{message.content}</p>
                                     </div>
                                 </div>
-                                <div className="relative h-10 w-10 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                                <div className="relative h-10 w-10 rounded-full overflow-hidden bg-white flex items-center justify-center">
                                     <span>You</span>
                                 </div>
                             </div>
@@ -197,30 +195,30 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
                         )}
                     </div>
                 </div>
-                <div className="border-t px-4 py-3 dark:border-gray-800">
+                <div className="border-t px-4 py-3 border-gray-200 ">
                     <div className="relative">
                         <textarea
                             onChange={handleMessageChange}
                             onKeyDown={handleKeyPress}
                             value={input}
                             placeholder="Type your message..."
-                            className="min-h-[80px] w-full resize-none rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
+                            className="min-h-[80px] w-full resize-none rounded-lg border border-gray-200 px-3 py-2 pr-12 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-200"
                         />
-                        <div className="absolute bottom-2 left-2 text-xs text-gray-500 dark:text-gray-400">
+                        <div className="absolute bottom-2 left-2 text-xs text-gray-500">
                             Tip: Press <kbd>Cmd</kbd> + <kbd>Enter</kbd> to send
                         </div>
                         <button
                             type="submit"
                             onClick={handleSendMessage}
                             disabled={loading}
-                            className="absolute top-1/2 right-3 -translate-y-1/2 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50"
+                            className="absolute bottom-3 right-3 p-2 rounded-full bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
                         >
                             {loading ? (
-                                <div className="h-5 w-5" />
+                                <div className="h-3 w-3" />
                             ) : (
                                 <>
-                                    <SendIcon className="h-5 w-5" />
-                                    <span className="sr-only">Send</span>
+                                    <SendIcon className="h-5 w-5" style={{ color: 'gray' }} />
+                                    {/* <span className="sr-only" style={{ color: 'gray' }}>Send</span> */}
                                 </>
                             )}
                         </button>

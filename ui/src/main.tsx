@@ -35,7 +35,7 @@ const zIndices = {
 
 const theme = extendTheme({
   config: {
-    initialColorMode: "dark",
+    initialColorMode: "light",
     useSystemColorMode: false,
   },
   zIndices,
@@ -61,11 +61,11 @@ const callback = function (
   _observer: MutationObserver,
 ) {
   // remove color-scheme property from <html> element, this made the checkboxes dark
-  const htmlElement = document.documentElement;
-  if (htmlElement.style.colorScheme === "dark") {
-    // Remove the color-scheme property
-    htmlElement.style.removeProperty("color-scheme");
-  }
+  // const htmlElement = document.documentElement;
+  // if (htmlElement.style.colorScheme === "dark") {
+  //   // Remove the color-scheme property
+  //   htmlElement.style.removeProperty("color-scheme");
+  // }
 
   // remove chakra from <body> class list, this broke the copy node feature
   for (const mutation of mutationsList) {
@@ -108,13 +108,14 @@ waitForDocumentBody()
           theme={theme}
         >
           <CSSReset scope=".workspace_manager" />
-          <ColorModeScript initialColorMode="dark" />
+          <ColorModeScript initialColorMode="light" />
           <AlertDialogProvider>
             <Suspense>
               <App />
             </Suspense>
           </AlertDialogProvider>
         </ChakraProvider>
+      
       </React.StrictMode>,
     );
   });

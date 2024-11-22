@@ -20,11 +20,7 @@ import { Topbar } from "./topbar/Topbar";
 import { Workflow, WorkflowVersion } from "./types/dbTypes";
 import { useDialog } from "./components/AlertDialogProvider";
 import React from "react";
-const RecentFilesDrawer = React.lazy(
-  () => import("./RecentFilesDrawer/RecentFilesDrawer"),
-);
 const WorkflowChat = React.lazy(() => import("./workflowChat/workflowChat"));
-const GalleryModal = React.lazy(() => import("./gallery/GalleryModal"));
 import { IconExternalLink, IconMessage } from "@tabler/icons-react";
 import { DRAWER_Z_INDEX, UPGRADE_TO_2WAY_SYNC_KEY } from "./const";
 import ServerEventListener from "./model-manager/hooks/ServerEventListener";
@@ -424,17 +420,10 @@ export default function App() {
             draggable={false}
           >
             <Topbar 
-              curFlowName={curFlowName} 
-              setCurFlowName={setCurFlowName}
               onChatClick={() => setShowChat(true)}
               showChat={showChat}
             />
             {showChat && <WorkflowChat onClose={() => setShowChat(false)} />}
-            {/* {route === "gallery" && (
-              <Suspense>
-                <GalleryModal onclose={() => setRoute("root")} />
-              </Suspense>
-            )} */}
           </Box>
           <ServerEventListener />
         </Portal>
