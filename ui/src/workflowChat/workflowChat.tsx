@@ -1,6 +1,8 @@
 import { ChangeEvent, KeyboardEvent, useEffect, useRef, useState } from "react";
 import { Message } from "../types/types";
 import { marked } from "marked";
+import { fetchApi } from "../Api";
+
 
 interface WorkflowChatProps {
     onClose?: () => void;
@@ -18,25 +20,37 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
             messageDivRef.current.scrollTop = messageDivRef.current.scrollHeight
         }
     }, [messages])
-    useEffect(() => {
-        let sessionId = localStorage.getItem("sessionId");
-        if (sessionId) {
-            setSessionId(sessionId);
-        } else {
-            sessionId = crypto.randomUUID();
-            setSessionId(sessionId);
-            localStorage.setItem("sessionId", sessionId);
-        }
 
+    // 获取历史消息
+    const fetchMessages = async (sid: string) => {
+        try {
+            const response = await fetchApi(`/workspace/chat_copilot/fetch_messages_by_id?session_id=${sid}`);
+            const data = await response.json();
+            setMessages(data);
+        } catch (error) {
+            console.error('Error fetching messages:', error);
+        }
+    };
+
+    useEffect(() => {
+        let sid = localStorage.getItem("sessionId");
+        if (sid) {
+            setSessionId(sid);
+            fetchMessages(sid);
+        } else {
+            sid = crypto.randomUUID();
+            setSessionId(sid);
+            localStorage.setItem("sessionId", sid);
+        }
     }, []);
 
     const handleMessageChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
         setInput(event.target.value);
     }
 
-    const handleSendMessage = () => {
-        if (input.trim() === "") return;
-        setLoading(true)
+    const handleSendMessage = async () => {
+        if (input.trim() === "" || !sessionId) return;
+        setLoading(true);
         
         const newMessage = {
             id: crypto.randomUUID(),
@@ -47,8 +61,27 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
         
         setMessages([...messages, newMessage]);
         setInput("");
-        setLoading(false);
-    }
+
+        try {
+            const response = await fetchApi('/workspace/chat_copilot/workflow_gen', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    session_id: sessionId,
+                    message: input
+                }),
+            });
+
+            const aiResponse = await response.json();
+            setMessages(prev => [...prev, aiResponse]);
+        } catch (error) {
+            console.error('Error sending message:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleKeyPress = (event: KeyboardEvent) => {
         if (event.metaKey && event.key === "Enter") {
