@@ -101,18 +101,24 @@ waitForDocumentBody()
     document.body.append(topbar);
     ReactDOM.createRoot(topbar).render(
       <React.StrictMode>
-        <ChakraProvider
-          resetCSS={false}
-          disableGlobalStyle={true}
-          theme={theme}
-        >
-          <ColorModeScript initialColorMode="light" />
-          <AlertDialogProvider>
+        {/*<ChakraProvider*/}
+        {/*  resetCSS={false}*/}
+        {/*  disableGlobalStyle={true}*/}
+        {/*  theme={theme}*/}
+        {/*>*/}
+        {/*  <ColorModeScript initialColorMode="light" />*/}
+        {/*  <AlertDialogProvider>*/}
+        {/*    <Suspense>*/}
+        {/*      <App />*/}
+        {/*    </Suspense>*/}
+        {/*  </AlertDialogProvider>*/}
+        {/*</ChakraProvider>*/}
+
+        <AlertDialogProvider>
             <Suspense>
               <App />
             </Suspense>
           </AlertDialogProvider>
-        </ChakraProvider>
       
       </React.StrictMode>,
     );
