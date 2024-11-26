@@ -160,19 +160,19 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
     };
 
     return (
-        <div className="fixed top-0 right-0 h-full w-1/4 max-w-[300px] shadow-lg bg-white" style={{ backgroundColor: 'white' }}>
+        <div className="fixed top-0 right-0 h-full w-1/4 max-w-[300px] shadow-lg bg-white">
             <div className="flex h-full flex-col">
-                <div className="flex items-center justify-between border-b px-4 py-3 border-gray-200" style={{ backgroundColor: 'gray' }}>
-                    <h3 className="text-lg font-medium text-gray-800 dark:text-gray-800">Chat</h3>
+                <div className="flex items-center justify-between border-b px-4 py-3 bg-white border-gray-200">
+                    <h3 className="text-lg font-medium text-gray-800">Chat</h3>
                     <div className="flex items-center gap-1">
                         <button
-                            className="inline-flex items-center justify-center rounded-full bg-gray-100 p-2 hover:bg-gray-200 disabled:opacity-50 dark:bg-gray-100"
+                            className="inline-flex items-center justify-center rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50"
                             disabled={messages.length === 0}
                             onClick={handleClearMessages}>
                             <TrashIcon className="h-5 w-5" />
                         </button>
                         <button
-                            className="inline-flex items-center justify-center rounded-full bg-gray-100 p-2 hover:bg-gray-200 dark:bg-gray-100"
+                            className="inline-flex items-center justify-center rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-600"
                             onClick={handleClose}>
                             <XIcon className="h-5 w-5" />
                         </button>
@@ -195,8 +195,7 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
                                 <div className="flex-1 min-w-0">
                                     <div className="text-sm">{message.name ? message.name : 'Assistant'}</div>
                                     {message.type === 'message' && (
-                                        <div className="rounded-lg bg-gray-100 p-3 text-sm break-words overflow-hidden"
-                                            style={{ backgroundColor: 'lightgray' }}>
+                                        <div className="rounded-lg bg-blue-50 p-3 text-sm break-words overflow-hidden">
                                             {message.content ? (
                                                 (() => {
                                                     try {
@@ -214,15 +213,9 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
                                                                             <button
                                                                                 key={index}
                                                                                 onClick={() => handleOptionClick(option)}
-                                                                                className="text-left px-4 py-2 rounded-lg border border-gray-300 
-                                                                                     hover:bg-gray-100 transition-colors duration-200 
-                                                                                     text-sm text-gray-700 shadow-sm"
-                                                                                style={{
-                                                                                    backgroundColor: 'yellow',
-                                                                                    whiteSpace: 'pre-wrap',
-                                                                                    maxWidth: '100%',
-                                                                                    wordBreak: 'break-word'
-                                                                                }}
+                                                                                className="text-left px-4 py-2 rounded-md border border-gray-200 
+                                                                                     hover:bg-gray-50 transition-colors duration-200 
+                                                                                     text-sm text-gray-700 shadow-sm bg-white"
                                                                             >
                                                                                 {option}
                                                                             </button>
@@ -265,8 +258,7 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
                                                                                     alert(option.workflow);
                                                                                     app.loadGraphData(JSON.parse(option.workflow));
                                                                                 }}
-                                                                                className="px-1 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                                                                                style={{ backgroundColor: 'yellow' }}
+                                                                                className="px-3 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors text-sm"
                                                                             >
                                                                                 Accept
                                                                             </button>
@@ -292,8 +284,8 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
                                                                 {parsedContent.existing_nodes.map((node: any) => (
                                                                     <div key={node.name}>
                                                                         <button
-                                                                            className="px-3 py-2 bg-blue-50 hover:bg-blue-100 rounded-lg relative group 
-                                                                                     text-blue-700 border border-blue-200 transition-colors"
+                                                                            className="px-3 py-2 bg-blue-50 hover:bg-blue-100 rounded-md
+                                                                                     text-blue-700 border border-blue-200 transition-colors text-sm"
                                                                             style={{ backgroundColor: 'yellow' }}
                                                                             onClick={() => {
                                                                                 const addNode = app.addNodeOnGraph({ name: node.name });
@@ -352,17 +344,16 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
                         )}
                     </div>
                 </div>
-                <div className="border-t px-4 py-3 border-gray-200">
+                <div className="border-t px-4 py-3 border-gray-200 bg-white">
                     {selectedNodeInfo && (
-                        <div className="mb-3 p-3 rounded-lg bg-gray-100 border border-gray-200" style={{ backgroundColor: 'lightgray', color: 'black' }}>
+                        <div className="mb-3 p-3 rounded-md bg-gray-50 border border-gray-200">
                             <h4 className="font-medium">Selected Node:</h4>
                             <div className="text-sm">
                                 <p>Type: {selectedNodeInfo.type}</p>
                                 <p>Title: {selectedNodeInfo.title || 'Untitled'}</p>
                             <div className="flex gap-2 mt-2">
                                 <button 
-                                    className="px-3 py-1 text-xs rounded bg-blue-100 hover:bg-blue-200 text-blue-700 transition-colors"
-                                    style={{ backgroundColor: 'yellow' }}
+                                    className="px-3 py-1 text-xs rounded-md bg-blue-50 hover:bg-blue-100 text-blue-700 transition-colors"
                                     onClick={() => setInput(`Explain how to use node: ${selectedNodeInfo.type}`)}
                                 >
                                     查询节点使用方法
@@ -391,7 +382,9 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
                             onKeyDown={handleKeyPress}
                             value={input}
                             placeholder="Type your message..."
-                            className="min-h-[80px] resize-none rounded-lg border border-gray-200 px-3 py-2 pr-12 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-200"
+                            className="w-full min-h-[80px] resize-none rounded-md border border-gray-200 
+                                     px-3 py-2 pr-12 text-sm shadow-sm focus:outline-none 
+                                     focus:ring-1 focus:ring-blue-500 bg-white"
                         />
                         <div className="absolute bottom-2 left-2 text-xs text-gray-500">
                             Tip: Press <kbd>Cmd</kbd> + <kbd>Enter</kbd> to send
@@ -400,7 +393,8 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
                             type="submit"
                             onClick={handleSendMessage}
                             disabled={loading}
-                            className="absolute bottom-3 right-3 p-2 rounded-full bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+                            className="absolute bottom-3 right-3 p-2 rounded-md text-gray-500 
+                                     hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50"
                         >
                             {loading ? (
                                 <div className="h-3 w-3" />

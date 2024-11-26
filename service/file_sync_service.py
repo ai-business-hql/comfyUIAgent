@@ -9,7 +9,7 @@ import uuid
 from pathlib import Path
 from .twoway_sync_folder_service import *
 import shutil
-from .scan_my_workflows_folder import *
+# from .scan_my_workflows_folder import *
 
 @server.PromptServer.instance.routes.post('/workspace/file/save')
 async def save_file(request):
@@ -120,50 +120,52 @@ def create_workflow_file(reqJson):
         return {}  # In case of any error
 
 def read_workflow_file(path, id):
-    abs_path = os.path.join(get_my_workflows_dir(), path)
-    create_time, update_time = getFileCreateTime(abs_path)
-    with open(abs_path, 'r', encoding='utf-8') as f:
-        json_data = json.load(f)
-        if 'extra' in json_data and 'workspace_info' in json_data['extra'] and 'id' in json_data['extra']['workspace_info']:
-            workflow_id = json_data['extra']['workspace_info']['id']
-            if workflow_id == id:
-                return {"json": json_data, "createTime": create_time, "updateTime": update_time}
-            return {"error": "Workflow ID doesn't match"}
-    return {"error": "No workspace_info.id found in the file"}
+    pass
+    # abs_path = os.path.join(get_my_workflows_dir(), path)
+    # create_time, update_time = getFileCreateTime(abs_path)
+    # with open(abs_path, 'r', encoding='utf-8') as f:
+    #     json_data = json.load(f)
+    #     if 'extra' in json_data and 'workspace_info' in json_data['extra'] and 'id' in json_data['extra']['workspace_info']:
+    #         workflow_id = json_data['extra']['workspace_info']['id']
+    #         if workflow_id == id:
+    #             return {"json": json_data, "createTime": create_time, "updateTime": update_time}
+    #         return {"error": "Workflow ID doesn't match"}
+    # return {"error": "No workspace_info.id found in the file"}
 
 
 def check_and_update_workflow_id(file_path, seen_ids):
-    with open(file_path, "r", encoding="utf-8") as f:
-        try:
-                json_data = json.load(f)
-        except json.JSONDecodeError as e:
-            print(f"Error reading JSON from {file_path}: {e}")
-            return
-        if (
-            "extra" in json_data
-            and "workspace_info" in json_data["extra"]
-            and "id" in json_data["extra"]["workspace_info"]
-        ):
-            workflow_id = json_data["extra"]["workspace_info"]["id"]
-            create_time, update_time = getFileCreateTime(file_path)
-            if workflow_id in seen_ids:
-                if create_time > seen_ids[workflow_id]["time"]:
-                    # Update the current file
-                    json_data["extra"]["workspace_info"]["id"] = str(uuid.uuid4())
-                    with open(file_path, "w", encoding="utf-8") as f:
-                        json.dump(json_data, f)
-                else:
-                    # Update the previously seen file
-                    old_file_path = seen_ids[workflow_id]["path"]
-                    with open(old_file_path, "r", encoding="utf-8") as f:
-                        old_json_data = json.load(f)
-                    old_json_data["extra"]["workspace_info"]["id"] = str(uuid.uuid4())
-                    with open(old_file_path, "w", encoding="utf-8") as f:
-                        json.dump(old_json_data, f)
-            seen_ids[workflow_id] = {
-                "time": create_time,
-                "path": file_path,
-            }
+    # with open(file_path, "r", encoding="utf-8") as f:
+    #     try:
+    #             json_data = json.load(f)
+    #     except json.JSONDecodeError as e:
+    #         print(f"Error reading JSON from {file_path}: {e}")
+    #         return
+    #     if (
+    #         "extra" in json_data
+    #         and "workspace_info" in json_data["extra"]
+    #         and "id" in json_data["extra"]["workspace_info"]
+    #     ):
+    #         workflow_id = json_data["extra"]["workspace_info"]["id"]
+    #         create_time, update_time = getFileCreateTime(file_path)
+    #         if workflow_id in seen_ids:
+    #             if create_time > seen_ids[workflow_id]["time"]:
+    #                 # Update the current file
+    #                 json_data["extra"]["workspace_info"]["id"] = str(uuid.uuid4())
+    #                 with open(file_path, "w", encoding="utf-8") as f:
+    #                     json.dump(json_data, f)
+    #             else:
+    #                 # Update the previously seen file
+    #                 old_file_path = seen_ids[workflow_id]["path"]
+    #                 with open(old_file_path, "r", encoding="utf-8") as f:
+    #                     old_json_data = json.load(f)
+    #                 old_json_data["extra"]["workspace_info"]["id"] = str(uuid.uuid4())
+    #                 with open(old_file_path, "w", encoding="utf-8") as f:
+    #                     json.dump(old_json_data, f)
+    #         seen_ids[workflow_id] = {
+    #             "time": create_time,
+    #             "path": file_path,
+    #         }
+    pass
 
 
 def dedupe_workflow_ids():
@@ -205,47 +207,49 @@ async def scan_local_new_files(request):
     return web.Response(text=json.dumps(fileList), content_type='application/json')
 
 def folder_handle(path):
-    fileList = []
-    for item in os.listdir(path):
-        try:
-            item_path = os.path.join(path, item)
-            if os.path.isfile(item_path) and item_path.endswith('.json'):
-                with open(item_path, 'r', encoding='utf-8') as f:
-                    file_handle(item, f, fileList, item_path)
-
-            elif os.path.isdir(item_path):
-                createTime, updateTime = getFileCreateTime(item_path)
-                fileList.append({
-                    'name': item,
-                    'type': 'folder',
-                    'createTime': createTime,
-                    'updateTime': updateTime
-                })
-        except Exception as e:
-            print(f"Error scanning file {item}: {e}")
-    return fileList
+    # fileList = []
+    # for item in os.listdir(path):
+    #     try:
+    #         item_path = os.path.join(path, item)
+    #         if os.path.isfile(item_path) and item_path.endswith('.json'):
+    #             with open(item_path, 'r', encoding='utf-8') as f:
+    #                 file_handle(item, f, fileList, item_path)
+    #
+    #         elif os.path.isdir(item_path):
+    #             createTime, updateTime = getFileCreateTime(item_path)
+    #             fileList.append({
+    #                 'name': item,
+    #                 'type': 'folder',
+    #                 'createTime': createTime,
+    #                 'updateTime': updateTime
+    #             })
+    #     except Exception as e:
+    #         print(f"Error scanning file {item}: {e}")
+    # return fileList
+    pass
 
 def file_handle(name, file, fileList, file_path):
-    json_data = json.load(file)
-    createTime, updateTime = getFileCreateTime(file_path)
-    if 'extra' in json_data and 'workspace_info' in json_data['extra'] and 'id' in json_data['extra']['workspace_info']:
-        workflow_id = json_data['extra']['workspace_info']['id']
-    else:
-        # If ID does not exist, generate a new UUID and add it to the JSON data
-        new_id = str(uuid.uuid4())
-        json_data.setdefault('extra', {}).setdefault('workspace_info', {})['id'] = new_id
-        with open(file_path, 'w', encoding='utf-8') as file:
-            json.dump(json_data, file, ensure_ascii=False, indent=4)
-    
-    fileInfo = {
-            'json': json.dumps(json_data),
-            'name': name,
-            'type': "workflow",
-            'id': json_data['extra']['workspace_info']['id'],
-            'createTime': createTime,
-            'updateTime': updateTime
-        }
-    fileList.append(fileInfo) 
+    # json_data = json.load(file)
+    # createTime, updateTime = getFileCreateTime(file_path)
+    # if 'extra' in json_data and 'workspace_info' in json_data['extra'] and 'id' in json_data['extra']['workspace_info']:
+    #     workflow_id = json_data['extra']['workspace_info']['id']
+    # else:
+    #     # If ID does not exist, generate a new UUID and add it to the JSON data
+    #     new_id = str(uuid.uuid4())
+    #     json_data.setdefault('extra', {}).setdefault('workspace_info', {})['id'] = new_id
+    #     with open(file_path, 'w', encoding='utf-8') as file:
+    #         json.dump(json_data, file, ensure_ascii=False, indent=4)
+    #
+    # fileInfo = {
+    #         'json': json.dumps(json_data),
+    #         'name': name,
+    #         'type': "workflow",
+    #         'id': json_data['extra']['workspace_info']['id'],
+    #         'createTime': createTime,
+    #         'updateTime': updateTime
+    #     }
+    # fileList.append(fileInfo)
+    pass
 
 @server.PromptServer.instance.routes.post('/workspace/file/gen_unique_name')
 async def generate_unique_file_name(request):

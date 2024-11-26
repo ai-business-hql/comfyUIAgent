@@ -11,6 +11,7 @@ import os
 import json
 from .service.media_service import *
 from .service.file_sync_service import *
+from .service.conversation_service import *
 from .service.node_service import *
 from .service.setting_service import *
 from .service.model_manager.model_installer import *

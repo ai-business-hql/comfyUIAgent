@@ -3,7 +3,6 @@ import ReactDOM from "react-dom/client";
 import { ColorModeScript, type StyleFunctionProps } from "@chakra-ui/react";
 import { ChakraProvider, extendTheme } from "@chakra-ui/react";
 import { AlertDialogProvider } from "./components/AlertDialogProvider.tsx";
-import CSSReset from "./MyCSSReset.tsx";
 import { waitForApp } from "./utils/comfyapp.ts";
 
 const App = React.lazy(() =>
@@ -107,7 +106,6 @@ waitForDocumentBody()
           disableGlobalStyle={true}
           theme={theme}
         >
-          <CSSReset scope=".workspace_manager" />
           <ColorModeScript initialColorMode="light" />
           <AlertDialogProvider>
             <Suspense>
