@@ -32,12 +32,13 @@ export type ShareWorkflowData = {
 };
 
 export interface Message {
-  id: string
-  content: string
-  role: string
-  name?: string
-  code?: string
-  toolCalls: { [key: string]: ToolCall }
+  id: string;
+  content: string;
+  role: string;
+  name?: string;
+  toolCalls?: any;
+  type?: 'message' | 'workflow_option' | 'node_search';
+  is_chunk?: boolean;
 }
 
 export interface ToolCall {
@@ -53,4 +54,17 @@ export interface ComponentConfig {
   type: string
   props: any
   children: ComponentConfig[]
+}
+
+export interface WorkflowOption {
+  name: string;
+  description: string;
+  thumbnail: string;
+  dir: string;
+  workflow: string;
+}
+
+export interface MessageContent {
+  ai_message: string;
+  options?: string[] | WorkflowOption[];
 }

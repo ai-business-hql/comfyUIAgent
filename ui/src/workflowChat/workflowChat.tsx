@@ -1,7 +1,7 @@
 import { ChangeEvent, KeyboardEvent, useEffect, useRef, useState } from "react";
 import { Message } from "../types/types";
-import { marked } from "marked";
-import { fetchApi } from "../Api";
+import { WorkflowChatAPI } from "../apis/workflowChatApi";
+import { app } from "../utils/comfyapp";
 
 
 interface WorkflowChatProps {
@@ -14,6 +14,7 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
     const [loading, setLoading] = useState<boolean>(false);
     const [sessionId, setSessionId] = useState<string>();
     const messageDivRef = useRef<HTMLDivElement>(null);
+    const [selectedNodeInfo, setSelectedNodeInfo] = useState<any>(null);
 
     useEffect(() => {
         if (messageDivRef.current) {
@@ -24,8 +25,7 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
     // 获取历史消息
     const fetchMessages = async (sid: string) => {
         try {
-            const response = await fetchApi(`/workspace/chat_copilot/fetch_messages_by_id?session_id=${sid}`);
-            const data = await response.json();
+            const data = await WorkflowChatAPI.fetchMessages(sid);
             setMessages(data);
         } catch (error) {
             console.error('Error fetching messages:', error);
@@ -44,38 +44,88 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
         }
     }, []);
 
+    useEffect(() => {
+        const handleNodeSelection = () => {
+            const selectedNodes = app.canvas.selected_nodes;
+            if (Object.keys(selectedNodes ?? {}).length) {
+                // Get the first selected node's info
+                const nodeInfo = Object.values(selectedNodes)[0];
+                setSelectedNodeInfo(nodeInfo);
+            } else {
+                setSelectedNodeInfo(null);
+            }
+        };
+
+        // Add event listeners
+        document.addEventListener("click", handleNodeSelection);
+
+        // Cleanup
+        return () => {
+            document.removeEventListener("click", handleNodeSelection);
+        };
+    }, []);
+
     const handleMessageChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
         setInput(event.target.value);
     }
 
     const handleSendMessage = async () => {
-        if (input.trim() === "" || !sessionId) return;
+        if ((input.trim() === "" && !selectedNodeInfo) || !sessionId) return;
         setLoading(true);
-        
+
         const newMessage = {
             id: crypto.randomUUID(),
             role: "user",
             content: input,
             toolCalls: {}
         };
-        
+
         setMessages([...messages, newMessage]);
         setInput("");
 
         try {
-            const response = await fetchApi('/workspace/chat_copilot/workflow_gen', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    session_id: sessionId,
-                    message: input
-                }),
-            });
+            let currentAiMessage: Message | null = null;
+            let accumulatedContent = '';
 
-            const aiResponse = await response.json();
-            setMessages(prev => [...prev, aiResponse]);
+            for await (const chunk of WorkflowChatAPI.streamMessage(sessionId, input)) {
+                if (chunk.is_chunk) {
+                    // 处理流式内容
+                    accumulatedContent += chunk.content;
+                    if (currentAiMessage) {
+                        const updatedMessage = { ...currentAiMessage };
+                        if (updatedMessage.type === 'message') {
+                            updatedMessage.content = accumulatedContent;
+                        } else {
+                            const content = JSON.parse(updatedMessage.content || '{}');
+                            content.ai_message = accumulatedContent;
+                            updatedMessage.content = JSON.stringify(content);
+                        }
+                        // 使用消息ID来更新现有消息
+                        setMessages(prev => prev.map(msg =>
+                            msg.id === updatedMessage.id ? updatedMessage : msg
+                        ));
+                    }
+                } else {
+                    // 处理完整消息或初始消息结构
+                    currentAiMessage = chunk;
+                    if (chunk.type === 'message' || chunk.type === 'workflow_option') {
+                        try {
+                            const content = JSON.parse(chunk.content || '{}');
+                            accumulatedContent = content.ai_message || '';
+                        } catch {
+                            accumulatedContent = chunk.content || '';
+                        }
+                    }
+                    // 检查是否已存在相同ID的消息
+                    setMessages(prev => {
+                        const messageExists = prev.some(msg => msg.id === chunk.id);
+                        if (messageExists) {
+                            return prev.map(msg => msg.id === chunk.id ? chunk : msg);
+                        }
+                        return [...prev, chunk];
+                    });
+                }
+            }
         } catch (error) {
             console.error('Error sending message:', error);
         } finally {
@@ -91,27 +141,14 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
 
     const handleClearMessages = () => {
         setMessages([]);
-    };
-
-    const convertToInitials = (snakeCaseName: string) => {
-        return snakeCaseName
-            .split('_')
-            .map(word => word[0])
-            .join('')
-            .toUpperCase();
-    }
-
-    const getMarkdownText = (markdownText: string) => {
-        const rawMarkup = marked.parse(markdownText);
-        return { __html: rawMarkup };
+        localStorage.removeItem("sessionId");
+        const newSessionId = crypto.randomUUID();
+        setSessionId(newSessionId);
+        localStorage.setItem("sessionId", newSessionId);
     };
 
     const avatar = (name?: string) => {
-        if (name) {
-            return `/avatar/${name}.jpg`;
-        } else {
-            return '/avatar/id.jpg';
-        }
+        return `https://ui-avatars.com/api/?name=${name || 'User'}&background=random`;
     }
 
     const handleClose = () => {
@@ -119,108 +156,183 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
     };
 
     const handleOptionClick = (option: string) => {
-        const newMessage = {
-            id: crypto.randomUUID(),
-            role: "user",
-            content: option,
-            toolCalls: {}
-        };
-        
-        setMessages([...messages, newMessage]);
+        setInput(option);
     };
 
     return (
-        <div className="fixed top-0 right-0 h-full w-2/3 max-w-full shadow-lg bg-white "  style={{ backgroundColor: 'white' }}>
+        <div className="fixed top-0 right-0 h-full w-1/4 max-w-[300px] shadow-lg bg-white" style={{ backgroundColor: 'white' }}>
             <div className="flex h-full flex-col">
                 <div className="flex items-center justify-between border-b px-4 py-3 border-gray-200" style={{ backgroundColor: 'gray' }}>
                     <h3 className="text-lg font-medium text-gray-800 dark:text-gray-800">Chat</h3>
                     <div className="flex items-center gap-1">
-                        <button 
+                        <button
                             className="inline-flex items-center justify-center rounded-full bg-gray-100 p-2 hover:bg-gray-200 disabled:opacity-50 dark:bg-gray-100"
                             disabled={messages.length === 0}
                             onClick={handleClearMessages}>
                             <TrashIcon className="h-5 w-5" />
                         </button>
-                        <button 
+                        <button
                             className="inline-flex items-center justify-center rounded-full bg-gray-100 p-2 hover:bg-gray-200 dark:bg-gray-100"
                             onClick={handleClose}>
                             <XIcon className="h-5 w-5" />
                         </button>
                     </div>
                 </div>
-                <div className="flex-1 overflow-auto p-4" ref={messageDivRef}>
-                    <div className="grid gap-4" style={{ color: 'gray' }}>
+                <div className="flex-1 overflow-y-auto p-4" ref={messageDivRef}>
+                    <div className="grid gap-4" style={{ color: 'gray', minHeight: 'min-content' }}>
                         {messages.map((message) =>
                         (message.role === 'ai' || message.role === 'tool' ?
-                            <div className="flex items-start gap-3" key={message.id}>
-                                <div className="relative h-10 w-10 rounded-full overflow-hidden">
-                                    <img 
-                                        src={avatar(message.name)} 
-                                        alt={message.name ? message.name : ''} 
-                                        width="40" 
+                            <div className="flex items-start gap-3 break-words resize-none" key={message.id}>
+                                <div className="relative h-10 w-10 flex-shrink-0 rounded-full overflow-hidden">
+                                    <img
+                                        src={avatar(message.role)}
+                                        alt={message.role ? message.role : ''}
+                                        width="40"
                                         height="40"
-                                        className="w-full h-full object-cover" 
+                                        className="w-full h-full object-cover"
                                     />
-                                    <div className="absolute inset-0 flex items-center justify-center bg-white">
-                                        {message.name ? convertToInitials(message.name) : 'AI'}
-                                    </div>
                                 </div>
-                                <div>
+                                <div className="flex-1 min-w-0">
                                     <div className="text-sm">{message.name ? message.name : 'Assistant'}</div>
-                                    <div className="rounded-lg bg-gray-100 p-3 text-sm">
-                                        {message.toolCalls && Object.keys(message.toolCalls).length > 0 ?
-                                            <div>
-                                                {Object.keys(message.toolCalls).map((key) => {
-                                                    const toolCall = message.toolCalls[key];
-                                                    return (
-                                                        <div key={toolCall.toolCallId}>
-                                                            <p className="text-xs text-gray-500 ">
-                                                                tool: {toolCall.name}
-                                                            </p>
-                                                            <p className="text-xs text-gray-500 ">
-                                                                args: {JSON.stringify(toolCall.args)}
-                                                            </p>
-                                                            {toolCall.result &&
-                                                                <p className="text-xs text-gray-500 ">
-                                                                    result: {JSON.stringify(toolCall.result)}
-                                                                </p>
-                                                            }
-                                                        </div>
-                                                    )
-                                                })}
-                                            </div>
-                                            :
-                                            null
-                                        }
-                                        {message.content ? (
-                                            (() => {
-                                                try {
-                                                    const parsedContent = JSON.parse(message.content);
-                                                    return (
-                                                        <>
-                                                            {parsedContent.ai_message && <p>{parsedContent.ai_message}</p>}
-                                                            {parsedContent.options && parsedContent.options.length > 0 && (
-                                                                <div className="mt-2 flex flex-wrap gap-2">
-                                                                    {parsedContent.options.slice(0, 3).map((option: string, index: number) => (
-                                                                        <button
-                                                                            key={index}
-                                                                            onClick={() => handleOptionClick(option)}
-                                                                            className="rounded bg-blue-500 px-2 py-1 text-xs text-white hover:bg-blue-600"
-                                                                        >
-                                                                            {option}
-                                                                        </button>
-                                                                    ))}
+                                    {message.type === 'message' && (
+                                        <div className="rounded-lg bg-gray-100 p-3 text-sm break-words overflow-hidden"
+                                            style={{ backgroundColor: 'lightgray' }}>
+                                            {message.content ? (
+                                                (() => {
+                                                    try {
+                                                        const parsedContent = JSON.parse(message.content);
+                                                        return (
+                                                            <div className="space-y-3">
+                                                                {parsedContent.ai_message && (
+                                                                    <p style={{ whiteSpace: 'pre-wrap', maxWidth: '100%', wordBreak: 'break-word' }}>
+                                                                        {parsedContent.ai_message}
+                                                                    </p>
+                                                                )}
+                                                                {parsedContent.options && parsedContent.options.length > 0 && (
+                                                                    <div className="flex flex-col space-y-2">
+                                                                        {parsedContent.options.slice(0, 3).map((option: string, index: number) => (
+                                                                            <button
+                                                                                key={index}
+                                                                                onClick={() => handleOptionClick(option)}
+                                                                                className="text-left px-4 py-2 rounded-lg border border-gray-300 
+                                                                                     hover:bg-gray-100 transition-colors duration-200 
+                                                                                     text-sm text-gray-700 shadow-sm"
+                                                                                style={{
+                                                                                    backgroundColor: 'yellow',
+                                                                                    whiteSpace: 'pre-wrap',
+                                                                                    maxWidth: '100%',
+                                                                                    wordBreak: 'break-word'
+                                                                                }}
+                                                                            >
+                                                                                {option}
+                                                                            </button>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    } catch {
+                                                        // If JSON.parse fails, render as markdown
+                                                        return <p dangerouslySetInnerHTML={{ __html: message.content }}></p>;
+                                                    }
+                                                })()
+                                            ) : null}
+                                        </div>
+                                    )}
+                                    {message.type === 'workflow_option' && (
+                                        (() => {
+                                            const parsedContent = JSON.parse(message.content);
+                                            return (
+                                                <div className="space-y-3">
+                                                    {parsedContent.ai_message && <p>{parsedContent.ai_message}</p>}
+                                                    {parsedContent.options && parsedContent.options.length > 0 && (
+                                                        <div className="flex flex-col space-y-4">
+                                                            {parsedContent.options.map((option: any, index: number) => (
+                                                                <div key={index} className="flex items-center gap-4 p-4 rounded-lg border border-gray-200 hover:bg-gray-50">
+                                                                    <img
+                                                                        src={option.thumbnail}
+                                                                        alt={option.name}
+                                                                        className="w-14 h-14 object-cover rounded-lg"
+                                                                    />
+                                                                    <div className="flex-1 max-w-[200px] break-words flex flex-col justify-between">
+                                                                        <div>
+                                                                            <h3 className="font-medium text-lg">{option.name}</h3>
+                                                                            <p className="text-gray-600 text-sm">{option.description}</p>
+                                                                        </div>
+                                                                        <div className="flex justify-end mt-4">
+                                                                            <button
+                                                                                onClick={async () => {
+                                                                                    alert(option.workflow);
+                                                                                    app.loadGraphData(JSON.parse(option.workflow));
+                                                                                }}
+                                                                                className="px-1 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                                                                                style={{ backgroundColor: 'yellow' }}
+                                                                            >
+                                                                                Accept
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
-                                                            )}
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })()
+                                    )}
+                                    {message.type === 'node_search' && (
+                                        (() => {
+                                            const parsedContent = JSON.parse(message.content);
+                                            return (
+                                                <div className="space-y-3">
+                                                    {parsedContent.existing_nodes && (
+                                                        <>
+                                                            <p className="text-gray-700 mb-2">Available nodes that can be added to canvas:</p>
+                                                            <div className="flex flex-wrap gap-2">
+                                                                {parsedContent.existing_nodes.map((node: any) => (
+                                                                    <div key={node.name}>
+                                                                        <button
+                                                                            className="px-3 py-2 bg-blue-50 hover:bg-blue-100 rounded-lg relative group 
+                                                                                     text-blue-700 border border-blue-200 transition-colors"
+                                                                            style={{ backgroundColor: 'yellow' }}
+                                                                            onClick={() => {
+                                                                                const addNode = app.addNodeOnGraph({ name: node.name });
+                                                                                node.connect(0, addNode, 0);
+                                                                            }}
+                                                                        >
+                                                                            {node.name}
+                                                                        </button>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
                                                         </>
-                                                    );
-                                                } catch {
-                                                    // If JSON.parse fails, render as markdown
-                                                    return <p dangerouslySetInnerHTML={getMarkdownText(message.content)}></p>;
-                                                }
-                                            })()
-                                        ) : null}
-                                    </div>
+                                                    )}
+                                                    
+                                                    {parsedContent.non_existing_nodes && (
+                                                        <>
+                                                            <p className="text-gray-700 mt-4 mb-2">Recommended nodes (requires installation):</p>
+                                                            <div className="flex flex-wrap gap-2">
+                                                                {parsedContent.non_existing_nodes.map((node: any) => (
+                                                                    <div key={node.name}>
+                                                                        <a href={node.github_url}
+                                                                           target="_blank"
+                                                                           rel="noopener noreferrer"
+                                                                           className="inline-block px-3 py-2 bg-gray-50 hover:bg-gray-100 
+                                                                                    rounded-lg relative group text-gray-700 border 
+                                                                                    border-gray-200 transition-colors"
+                                                                            style={{ backgroundColor: 'yellow' }}
+                                                                        >
+                                                                            {node.name}
+                                                                        </a>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            );
+                                        })()
+                                    )}
                                 </div>
                             </div>
                             :
@@ -228,7 +340,7 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
                                 <div>
                                     <div
                                         className="text-sm text-right">{message.name ? message.name : 'User'}</div>
-                                    <div className="rounded-lg bg-blue-500 p-3 text-sm text-white">
+                                    <div className="rounded-lg bg-blue-500 p-3 text-sm text-white break-words">
                                         <p>{message.content}</p>
                                     </div>
                                 </div>
@@ -240,14 +352,46 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
                         )}
                     </div>
                 </div>
-                <div className="border-t px-4 py-3 border-gray-200 ">
+                <div className="border-t px-4 py-3 border-gray-200">
+                    {selectedNodeInfo && (
+                        <div className="mb-3 p-3 rounded-lg bg-gray-100 border border-gray-200" style={{ backgroundColor: 'lightgray', color: 'black' }}>
+                            <h4 className="font-medium">Selected Node:</h4>
+                            <div className="text-sm">
+                                <p>Type: {selectedNodeInfo.type}</p>
+                                <p>Title: {selectedNodeInfo.title || 'Untitled'}</p>
+                            <div className="flex gap-2 mt-2">
+                                <button 
+                                    className="px-3 py-1 text-xs rounded bg-blue-100 hover:bg-blue-200 text-blue-700 transition-colors"
+                                    style={{ backgroundColor: 'yellow' }}
+                                    onClick={() => setInput(`Explain how to use node: ${selectedNodeInfo.type}`)}
+                                >
+                                    查询节点使用方法
+                                </button>
+                                <button
+                                    className="px-3 py-1 text-xs rounded bg-green-100 hover:bg-green-200 text-green-700 transition-colors"
+                                    style={{ backgroundColor: 'yellow' }}
+                                    onClick={() => setInput(`What are the parameters for node: ${selectedNodeInfo.type}`)}
+                                >
+                                    查询参数
+                                </button>
+                                <button
+                                    className="px-3 py-1 text-xs rounded bg-purple-100 hover:bg-purple-200 text-purple-700 transition-colors"
+                                    style={{ backgroundColor: 'yellow' }}
+                                    onClick={() => setInput(`Recommend downstream nodes for: ${selectedNodeInfo.type}`)}
+                                >
+                                    下游节点推荐
+                                </button>
+                            </div>
+                            </div>
+                        </div>
+                    )}
                     <div className="relative">
                         <textarea
                             onChange={handleMessageChange}
                             onKeyDown={handleKeyPress}
                             value={input}
                             placeholder="Type your message..."
-                            className="min-h-[80px] w-full resize-none rounded-lg border border-gray-200 px-3 py-2 pr-12 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-200"
+                            className="min-h-[80px] resize-none rounded-lg border border-gray-200 px-3 py-2 pr-12 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-200"
                         />
                         <div className="absolute bottom-2 left-2 text-xs text-gray-500">
                             Tip: Press <kbd>Cmd</kbd> + <kbd>Enter</kbd> to send
