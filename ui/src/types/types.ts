@@ -39,6 +39,7 @@ export interface Message {
   toolCalls?: any;
   type?: 'message' | 'workflow_option' | 'node_search';
   is_chunk?: boolean;
+  format?: 'markdown' | 'text';
 }
 
 export interface ToolCall {

@@ -2,6 +2,7 @@ import { ChangeEvent, KeyboardEvent, useEffect, useRef, useState } from "react";
 import { Message } from "../types/types";
 import { WorkflowChatAPI } from "../apis/workflowChatApi";
 import { app } from "../utils/comfyapp";
+import ReactMarkdown from 'react-markdown';
 
 
 interface WorkflowChatProps {
@@ -160,29 +161,36 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
     };
 
     return (
-            <div className="fixed top-0 right-0 h-full w-1/4 max-w-[300px] shadow-lg bg-yellow-300">
-                <div className="flex h-full flex-col">
-                    <div className="flex items-center justify-between border-b px-4 py-3 bg-white border-gray-200">
-                        <h3 className="text-lg font-medium text-gray-800">Chat</h3>
-                        <div className="flex items-center gap-1">
-                            <button
-                                className="inline-flex items-center justify-center rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50"
-                                disabled={messages.length === 0}
-                                onClick={handleClearMessages}>
-                                <TrashIcon className="h-5 w-5" />
-                            </button>
-                            <button
-                                className="inline-flex items-center justify-center rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-600"
-                                onClick={handleClose}>
-                                <XIcon className="h-5 w-5" />
-                            </button>
-                        </div>
+        <div className="fixed top-0 right-0 h-full w-1/3 shadow-lg bg-white
+                        transition-all duration-300 ease-in-out hover:shadow-xl text-gray-700">
+            <div className="flex h-full flex-col">
+                <div className="flex items-center justify-between border-b px-4 py-3 
+                               bg-white border-gray-200 sticky top-0 z-10">
+                    <h3 className="text-lg font-medium text-gray-800">Chat</h3>
+                    <div className="flex items-center gap-1">
+                        <button
+                            className="inline-flex items-center justify-center rounded-md p-2 
+                                     text-gray-500 hover:bg-gray-100 hover:text-gray-600 
+                                     disabled:opacity-50 transition-colors duration-200"
+                            disabled={messages.length === 0}
+                            onClick={handleClearMessages}>
+                            <TrashIcon className="h-5 w-5" />
+                        </button>
+                        <button
+                            className="inline-flex items-center justify-center rounded-md p-2 
+                                     text-gray-500 hover:bg-gray-100 hover:text-gray-600 
+                                     transition-colors duration-200"
+                            onClick={handleClose}>
+                            <XIcon className="h-5 w-5" />
+                        </button>
                     </div>
-                    <div className="flex-1 overflow-y-auto p-4" ref={messageDivRef}>
-                        <div className="grid gap-4" style={{ color: 'gray', minHeight: 'min-content' }}>
-                            {messages.map((message) =>
-                            (message.role === 'ai' || message.role === 'tool' ?
-                                <div className="flex items-start gap-3 break-words resize-none" key={message.id}>
+                </div>
+                <div className="flex-1 overflow-y-auto p-4 scroll-smooth" ref={messageDivRef}>
+                    <div className="grid gap-4">
+                        {messages.map((message) => (
+                            message.role === 'ai' || message.role === 'tool' ? (
+                                <div className="flex items-start gap-3 break-words animate-fadeIn" 
+                                     key={message.id}>
                                     <div className="relative h-10 w-10 flex-shrink-0 rounded-full overflow-hidden">
                                         <img
                                             src={avatar(message.role)}
@@ -193,9 +201,10 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
                                         />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <div className="text-sm">{message.name ? message.name : 'Assistant'}</div>
+                                        <div className="text-sm text-gray-700">{message.name ? message.name : 'Assistant'}</div>
                                         {message.type === 'message' && (
-                                            <div className="rounded-lg bg-blue-50 p-3 text-sm break-words overflow-hidden">
+                                            <div className="rounded-lg bg-green-50 p-3 text-gray-700 text-sm 
+                                                          break-words overflow-hidden">
                                                 {message.content ? (
                                                     (() => {
                                                         try {
@@ -203,8 +212,12 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
                                                             return (
                                                                 <div className="space-y-3">
                                                                     {parsedContent.ai_message && (
-                                                                        <p style={{ whiteSpace: 'pre-wrap', maxWidth: '100%', wordBreak: 'break-word' }}>
-                                                                            {parsedContent.ai_message}
+                                                                        <p>
+                                                                            {message.format === 'markdown' ? (
+                                                                                <ReactMarkdown>{parsedContent.ai_message}</ReactMarkdown>
+                                                                            ) : (
+                                                                                parsedContent.ai_message
+                                                                            )}
                                                                         </p>
                                                                     )}
                                                                     {parsedContent.options && parsedContent.options.length > 0 && (
@@ -215,7 +228,7 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
                                                                                     onClick={() => handleOptionClick(option)}
                                                                                     className="text-left px-4 py-2 rounded-md border border-gray-200 
                                                                                          hover:bg-gray-50 transition-colors duration-200 
-                                                                                         text-sm text-gray-700 shadow-sm bg-white"
+                                                                                         text-xs text-gray-700 shadow-sm bg-white"
                                                                                 >
                                                                                     {option}
                                                                                 </button>
@@ -225,7 +238,6 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
                                                                 </div>
                                                             );
                                                         } catch {
-                                                            // If JSON.parse fails, render as markdown
                                                             return <p dangerouslySetInnerHTML={{ __html: message.content }}></p>;
                                                         }
                                                     })()
@@ -237,7 +249,9 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
                                                 const parsedContent = JSON.parse(message.content);
                                                 return (
                                                     <div className="space-y-3">
-                                                        {parsedContent.ai_message && <p>{parsedContent.ai_message}</p>}
+                                                        <div className="bg-green-50 p-3 text-sm">
+                                                            {parsedContent.ai_message && <p>{parsedContent.ai_message}</p>}
+                                                        </div>
                                                         {parsedContent.options && parsedContent.options.length > 0 && (
                                                             <div className="flex flex-col space-y-4">
                                                                 {parsedContent.options.map((option: any, index: number) => (
@@ -247,15 +261,14 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
                                                                             alt={option.name}
                                                                             className="w-14 h-14 object-cover rounded-lg"
                                                                         />
-                                                                        <div className="flex-1 max-w-[200px] break-words flex flex-col justify-between">
+                                                                        <div className="flex-1 break-words flex flex-col justify-between">
                                                                             <div>
-                                                                                <h3 className="font-medium text-lg">{option.name}</h3>
-                                                                                <p className="text-gray-600 text-sm">{option.description}</p>
+                                                                                <h3 className="font-medium text-sm">{option.name}</h3>
+                                                                                <p className="text-gray-600 text-xs">{option.description}</p>
                                                                             </div>
                                                                             <div className="flex justify-end mt-4">
                                                                                 <button
                                                                                     onClick={async () => {
-                                                                                        alert(option.workflow);
                                                                                         app.loadGraphData(JSON.parse(option.workflow));
                                                                                     }}
                                                                                     className="px-3 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors text-sm"
@@ -276,50 +289,47 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
                                             (() => {
                                                 const parsedContent = JSON.parse(message.content);
                                                 return (
-                                                    <div className="space-y-3">
+                                                    <div className="rounded-lg bg-green-50 p-3 text-gray-700 text-sm break-words overflow-hidden">
                                                         {parsedContent.existing_nodes && (
-                                                            <>
-                                                                <p className="text-gray-700 mb-2">Available nodes that can be added to canvas:</p>
+                                                            <div className="space-y-3">
+                                                                <p>Available nodes that can be added to canvas:</p>
                                                                 <div className="flex flex-wrap gap-2">
                                                                     {parsedContent.existing_nodes.map((node: any) => (
-                                                                        <div key={node.name}>
-                                                                            <button
-                                                                                className="px-3 py-2 bg-blue-50 hover:bg-blue-100 rounded-md
-                                                                                         text-blue-700 border border-blue-200 transition-colors text-sm"
-                                                                                style={{ backgroundColor: 'yellow' }}
-                                                                                onClick={() => {
-                                                                                    const addNode = app.addNodeOnGraph({ name: node.name });
-                                                                                    node.connect(0, addNode, 0);
-                                                                                }}
-                                                                            >
-                                                                                {node.name}
-                                                                            </button>
-                                                                        </div>
+                                                                        <button
+                                                                            key={node.name}
+                                                                            className="px-3 py-1.5 bg-blue-500 text-white rounded-md 
+                                                                                     hover:bg-blue-600 transition-colors text-sm"
+                                                                            onClick={() => {
+                                                                                const addNode = app.addNodeOnGraph({ name: node.name });
+                                                                                node.connect(0, addNode, 0);
+                                                                            }}
+                                                                        >
+                                                                            {node.name}
+                                                                        </button>
                                                                     ))}
                                                                 </div>
-                                                            </>
+                                                            </div>
                                                         )}
                                                         
                                                         {parsedContent.non_existing_nodes && (
-                                                            <>
-                                                                <p className="text-gray-700 mt-4 mb-2">Recommended nodes (requires installation):</p>
+                                                            <div className="space-y-3 mt-4">
+                                                                <p>Recommended nodes (requires installation):</p>
                                                                 <div className="flex flex-wrap gap-2">
                                                                     {parsedContent.non_existing_nodes.map((node: any) => (
-                                                                        <div key={node.name}>
-                                                                            <a href={node.github_url}
-                                                                               target="_blank"
-                                                                               rel="noopener noreferrer"
-                                                                               className="inline-block px-3 py-2 bg-gray-50 hover:bg-gray-100 
-                                                                                        rounded-lg relative group text-gray-700 border 
-                                                                                        border-gray-200 transition-colors"
-                                                                                style={{ backgroundColor: 'yellow' }}
-                                                                            >
-                                                                                {node.name}
-                                                                            </a>
-                                                                        </div>
+                                                                        <a
+                                                                            key={node.name}
+                                                                            href={node.github_url}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md
+                                                                                     hover:bg-gray-200 transition-colors text-sm border 
+                                                                                     border-gray-200"
+                                                                        >
+                                                                            {node.name}
+                                                                        </a>
                                                                     ))}
                                                                 </div>
-                                                            </>
+                                                            </div>
                                                         )}
                                                     </div>
                                                 );
@@ -327,88 +337,90 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
                                         )}
                                     </div>
                                 </div>
-                                :
-                                <div className="flex items-start gap-3 justify-end" key={message.id}>
+                            ) : (
+                                <div className="flex items-start gap-3 justify-end animate-slideIn" 
+                                     key={message.id}>
                                     <div>
                                         <div
-                                            className="text-sm text-right">{message.name ? message.name : 'User'}</div>
-                                        <div className="rounded-lg bg-blue-500 p-3 text-sm text-white break-words">
+                                            className="text-sm text-gray-700 text-right">{message.name ? message.name : 'User'}</div>
+                                        <div className="rounded-lg bg-blue-50 p-3 text-gray-700 text-sm  break-words">
                                             <p>{message.content}</p>
                                         </div>
                                     </div>
-                                    <div className="relative h-10 w-10 rounded-full overflow-hidden bg-white flex items-center justify-center">
-                                        <span>You</span>
+                                    <div className="relative h-10 w-10 rounded-full overflow-hidden bg-gray-200 
+                                                 flex items-center justify-center">
+                                        <span className="text-gray-700">You</span>
                                     </div>
                                 </div>
                             )
-                            )}
-                        </div>
+                        ))}
                     </div>
-                    <div className="border-t px-4 py-3 border-gray-200 bg-white">
-                        {selectedNodeInfo && (
-                            <div className="mb-3 p-3 rounded-md bg-gray-50 border border-gray-200">
-                                <h4 className="font-medium">Selected Node:</h4>
-                                <div className="text-sm">
-                                    <p>Type: {selectedNodeInfo.type}</p>
-                                    <p>Title: {selectedNodeInfo.title || 'Untitled'}</p>
-                                <div className="flex gap-2 mt-2">
-                                    <button 
-                                        className="px-3 py-1 text-xs rounded-md bg-blue-50 hover:bg-blue-100 text-blue-700 transition-colors"
-                                        onClick={() => setInput(`Explain how to use node: ${selectedNodeInfo.type}`)}
-                                    >
-                                        查询节点使用方法
-                                    </button>
-                                    <button
-                                        className="px-3 py-1 text-xs rounded bg-green-100 hover:bg-green-200 text-green-700 transition-colors"
-                                        style={{ backgroundColor: 'yellow' }}
-                                        onClick={() => setInput(`What are the parameters for node: ${selectedNodeInfo.type}`)}
-                                    >
-                                        查询参数
-                                    </button>
-                                    <button
-                                        className="px-3 py-1 text-xs rounded bg-purple-100 hover:bg-purple-200 text-purple-700 transition-colors"
-                                        style={{ backgroundColor: 'yellow' }}
-                                        onClick={() => setInput(`Recommend downstream nodes for: ${selectedNodeInfo.type}`)}
-                                    >
-                                        下游节点推荐
-                                    </button>
-                                </div>
-                                </div>
+                </div>
+                <div className="border-t px-4 py-3 border-gray-200 bg-white sticky bottom-0">
+                    {selectedNodeInfo && (
+                        <div className="mb-3 p-3 rounded-md bg-gray-50 border border-gray-200 
+                                      transform transition-all duration-200 hover:shadow-md">
+                            <h4 className="font-medium">Selected Node:</h4>
+                            <div className="text-sm">
+                                <p>Type: {selectedNodeInfo.type}</p>
+                                <p>Title: {selectedNodeInfo.title || 'Untitled'}</p>
+                            <div className="flex gap-2 mt-2">
+                                <button 
+                                    className="px-3 py-1 text-xs rounded-md bg-blue-50 
+                                             hover:bg-blue-100 text-blue-700 transition-all 
+                                             duration-200 hover:shadow-sm active:scale-95"
+                                    onClick={() => setInput(`Explain how to use node: ${selectedNodeInfo.type}`)}>
+                                    查询节点使用方法
+                                </button>
+                                <button
+                                    className="px-3 py-1 text-xs rounded bg-green-100 hover:bg-green-200 text-green-700 transition-colors"
+                                    onClick={() => setInput(`What are the parameters for node: ${selectedNodeInfo.type}`)}
+                                >
+                                    查询参数
+                                </button>
+                                <button
+                                    className="px-3 py-1 text-xs rounded bg-purple-100 hover:bg-purple-200 text-purple-700 transition-colors"
+                                    onClick={() => setInput(`Recommend downstream nodes for: ${selectedNodeInfo.type}`)}
+                                >
+                                    下游节点推荐
+                                </button>
                             </div>
-                        )}
-                        <div className="relative">
-                            <textarea
-                                onChange={handleMessageChange}
-                                onKeyDown={handleKeyPress}
-                                value={input}
-                                placeholder="Type your message..."
-                                className="w-full min-h-[80px] resize-none rounded-md border border-gray-200 
-                                         px-3 py-2 pr-12 text-sm shadow-sm focus:outline-none 
-                                         focus:ring-1 focus:ring-blue-500 bg-white"
-                            />
-                            <div className="absolute bottom-2 left-2 text-xs text-gray-500">
-                                Tip: Press <kbd>Cmd</kbd> + <kbd>Enter</kbd> to send
                             </div>
-                            <button
-                                type="submit"
-                                onClick={handleSendMessage}
-                                disabled={loading}
-                                className="absolute bottom-3 right-3 p-2 rounded-md text-gray-500 
-                                         hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50"
-                            >
-                                {loading ? (
-                                    <div className="h-3 w-3" />
-                                ) : (
-                                    <>
-                                        <SendIcon className="h-5 w-5" style={{ color: 'gray' }} />
-                                    </>
-                                )}
-                            </button>
                         </div>
+                    )}
+                    
+                    <div className="relative">
+                        <textarea
+                            onChange={handleMessageChange}
+                            onKeyDown={handleKeyPress}
+                            value={input}
+                            placeholder="Type your message..."
+                            className="w-full min-h-[80px] resize-none rounded-md border 
+                                     border-gray-200 px-3 py-2 pr-12 text-sm shadow-sm 
+                                     focus:outline-none focus:ring-2 focus:ring-blue-500 
+                                     focus:border-transparent bg-white transition-all 
+                                     duration-200 text-gray-700"
+                        />
+                        <button
+                            type="submit"
+                            onClick={handleSendMessage}
+                            disabled={loading}
+                            className="absolute bottom-3 right-3 p-2 rounded-md text-gray-500 
+                                     hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50 
+                                     transition-all duration-200 active:scale-95">
+                            {loading ? (
+                                <div className="h-5 w-5 animate-spin rounded-full 
+                                              border-2 border-gray-300 border-t-blue-500" />
+                            ) : (
+                                <SendIcon className="h-5 w-5 transform transition-transform 
+                                                   group-hover:translate-x-1" />
+                            )}
+                        </button>
                     </div>
                 </div>
             </div>
-    )
+        </div>
+    );
 }
 
 function SendIcon(props: any) {
