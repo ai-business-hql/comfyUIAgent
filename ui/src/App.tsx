@@ -1,4 +1,3 @@
-import { Box, Portal, Button } from "@chakra-ui/react";
 import React, { useRef, useState } from "react";
 import { DRAWER_Z_INDEX } from "./const";
 const WorkflowChat = React.lazy(() => import("./workflowChat/workflowChat"));
@@ -8,23 +7,16 @@ export default function App() {
   const [showChat, setShowChat] = useState(true);
 
   return (
-    <div ref={workspaceContainerRef} className="workspace_manager">
-
-      {/*<Portal containerRef={workspaceContainerRef}>*/}
-      {/*  <Box*/}
-      {/*    style={{*/}
-      {/*      position: "absolute",*/}
-      {/*      top: 0,*/}
-      {/*      right: 0,*/}
-      {/*      left: 0,*/}
-      {/*    }}*/}
-      {/*    zIndex={DRAWER_Z_INDEX}*/}
-      {/*    draggable={false}*/}
-      {/*  >*/}
-          <Button onClick={() => setShowChat(true)}>show chat</Button>
-          {showChat && <WorkflowChat onClose={() => setShowChat(false)} />}
-        {/*</Box>*/}
-      {/*</Portal>*/}
+    <div ref={workspaceContainerRef}>
+      <div className="absolute top-0 left-0" style={{ zIndex: DRAWER_Z_INDEX }}>
+        <button 
+          onClick={() => setShowChat(true)}
+          className="px-4 py-2 cursor-pointer border border-gray-300 rounded-md bg-white text-black hover:bg-green-600 transition-colors"
+        >
+          show chat
+        </button>
+        {showChat && <WorkflowChat onClose={() => setShowChat(false)} />}
+      </div>
     </div>
   );
 }

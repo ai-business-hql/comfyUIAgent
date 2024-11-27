@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { exec } from 'child_process';
 
 const rewriteImportPlugin = ({ isDev }) => {
   return {
@@ -26,6 +27,30 @@ export default defineConfig(({ mode }) => ({
   build: {
     watch: {
       include: ["src/**"],
+      buildStart() {
+        // Start Tailwind CSS watch process
+        console.log("Starting Tailwind CSS watch process...");
+        const tailwindProcess = exec(
+          'npx tailwindcss -i ./src/input.css -o ./src/output.css --watch',
+          (error, stdout, stderr) => {
+            if (error) {
+              console.error(`Tailwind CSS watch error: ${error}`);
+              return;
+            }
+            if (stderr) {
+              console.error(`Tailwind CSS stderr: ${stderr}`);
+              return;
+            }
+            console.log(`Tailwind CSS stdout: ${stdout}`);
+          }
+        );
+
+        // Cleanup process on build end
+        process.on('exit', () => {
+          tailwindProcess.kill();
+        });
+        console.log("Tailwind CSS watch process s.");
+      }
     },
     // minify: false, // ___DEBUG__MODE only
     // sourcemap: true, // ___DEBUG___MODE only
