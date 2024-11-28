@@ -37,7 +37,7 @@ export interface Message {
   role: string;
   name?: string;
   toolCalls?: any;
-  type?: 'message' | 'workflow_option' | 'node_search';
+  type?: 'message' | 'workflow_option' | 'node_search' | 'downstream_node_recommend';
   is_chunk?: boolean;
   format?: 'markdown' | 'text';
 }

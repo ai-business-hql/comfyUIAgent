@@ -8,7 +8,7 @@ export default function App() {
 
   return (
     <div ref={workspaceContainerRef}>
-      <div className="absolute top-0 left-0" style={{ zIndex: DRAWER_Z_INDEX }}>
+      <div className="absolute top-0 right-0" style={{ zIndex: DRAWER_Z_INDEX }}>
         <button 
           onClick={() => setShowChat(true)}
           className="px-4 py-2 cursor-pointer border border-gray-300 rounded-md bg-white text-black hover:bg-green-600 transition-colors"
