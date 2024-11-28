@@ -30,7 +30,7 @@ export function AIMessage({ content, name = 'Assistant', avatar, format, onOptio
                                 <button
                                     key={index}
                                     className="px-3 py-1.5 bg-white text-gray-700 rounded-md 
-                                             hover:bg-gray-50 transition-colors text-sm w-full"
+                                             hover:bg-gray-50 transition-colors text-xs w-full"
                                     onClick={() => onOptionClick?.(option)}
                                 >
                                     {option}
