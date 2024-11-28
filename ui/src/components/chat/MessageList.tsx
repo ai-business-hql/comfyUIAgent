@@ -32,6 +32,7 @@ export function MessageList({ messages, onOptionClick }: MessageListProps) {
                             name={message.name}
                             avatar={avatar}
                             format={message.format}
+                            onOptionClick={onOptionClick}
                         />
                     );
                 case 'workflow_option':

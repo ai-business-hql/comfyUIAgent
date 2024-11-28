@@ -14,7 +14,13 @@ export function ChatInput({ input, loading, onChange, onSend, onKeyPress }: Chat
         <div className="relative">
             <textarea
                 onChange={onChange}
-                onKeyDown={onKeyPress}
+                onKeyDown={(e: KeyboardEvent) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        onSend();
+                    }
+                    onKeyPress(e);
+                }}
                 value={input}
                 placeholder="Type your message..."
                 className="w-full min-h-[80px] resize-none rounded-md border 

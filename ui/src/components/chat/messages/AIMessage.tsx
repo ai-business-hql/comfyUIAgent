@@ -10,9 +10,10 @@ interface AIMessageProps {
     name?: string;
     avatar: string;
     format?: string;
+    onOptionClick?: (option: string) => void;
 }
 
-export function AIMessage({ content, name = 'Assistant', avatar, format }: AIMessageProps) {
+export function AIMessage({ content, name = 'Assistant', avatar, format, onOptionClick }: AIMessageProps) {
     const renderContent = () => {
         try {
             const parsedContent = JSON.parse(content);
@@ -22,6 +23,20 @@ export function AIMessage({ content, name = 'Assistant', avatar, format }: AIMes
                         <p className="whitespace-pre-wrap">
                             {parsedContent.ai_message}
                         </p>
+                    )}
+                    {parsedContent.options && parsedContent.options.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                            {parsedContent.options.map((option: string, index: number) => (
+                                <button
+                                    key={index}
+                                    className="px-3 py-1.5 bg-white text-gray-700 rounded-md 
+                                             hover:bg-gray-50 transition-colors text-sm w-full"
+                                    onClick={() => onOptionClick?.(option)}
+                                >
+                                    {option}
+                                </button>
+                            ))}
+                        </div>
                     )}
                 </div>
             );
