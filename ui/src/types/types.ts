@@ -31,15 +31,47 @@ export type ShareWorkflowData = {
   privacy: EWorkflowPrivacy;
 };
 
+export interface Node {
+  name: string;
+  description: string;
+  image: string;
+  github_url: string;
+  from_index: number;
+  to_index: number;
+}
+
+export interface NodeInfo {
+  existing_nodes: Node[];
+  missing_nodes: Node[];
+}
+
+export interface Workflow {
+  id?: number;
+  name?: string;
+  description?: string;
+  image?: string;
+  workflow?: string;
+}
+
+export interface ChatResponse {
+  session_id: string;
+  text?: string;
+  finished: boolean;
+  recommend_workflows: Workflow[];
+  type: string;
+  format: string;
+  node_info?: NodeInfo;
+  guides: string[];
+}
+
 export interface Message {
   id: string;
   content: string;
-  role: string;
+  role: 'user' | 'ai' | 'tool';
   name?: string;
-  toolCalls?: any;
-  type?: 'message' | 'workflow_option' | 'node_search' | 'downstream_node_recommend';
-  is_chunk?: boolean;
-  format?: 'markdown' | 'text';
+  type?: string;
+  format?: string;
+  finished?: boolean;
 }
 
 export interface ToolCall {

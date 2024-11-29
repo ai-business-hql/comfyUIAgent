@@ -1,6 +1,7 @@
 import { app } from "../../../utils/comfyapp";
 import { BaseMessage } from './BaseMessage';
 import { useState } from 'react';
+import { ChatResponse, Node } from "../../../types/types";
 
 interface NodeRecommendProps {
     content: string;
@@ -9,25 +10,33 @@ interface NodeRecommendProps {
 }
 
 export function NodeRecommend({ content, name = 'Assistant', avatar }: NodeRecommendProps) {
-    const parsedContent = JSON.parse(content);
+    const response = JSON.parse(content) as ChatResponse;
     const [hoveredNode, setHoveredNode] = useState<string | null>(null);
 
     return (
         <BaseMessage avatar={avatar} name={name}>
             <div className="rounded-lg bg-green-50 p-3 text-gray-700 text-sm break-words overflow-visible">
-                {parsedContent.existing_nodes && (
+                {response.text && (
+                    <p className="mb-4">{response.text}</p>
+                )}
+                
+                {response.node_info?.existing_nodes && response.node_info.existing_nodes.length > 0 && (
                     <div className="space-y-3">
                         <p>Recommended downstream nodes that can be connected:</p>
                         <div className="flex flex-wrap gap-2">
-                            {parsedContent.existing_nodes.map((node: any) => (
+                            {response.node_info.existing_nodes.map((node: Node) => (
                                 <div key={node.name} className="relative group">
                                     <button
                                         className="px-3 py-1.5 bg-blue-500 text-white rounded-md 
                                                  hover:bg-blue-600 transition-colors text-xs"
                                         onClick={() => {
                                             const addNode = app.addNodeOnGraph({ name: node.name });
-                                            const node_from = Object.entries(app.canvas.selected_nodes)[0].at(-1) as any;
-                                            node_from.connect(node.from_index, addNode, node.to_index);
+                                            if (addNode) {
+                                                const selectedNode = Object.values(app.canvas.selected_nodes)[0];
+                                                if (selectedNode) {
+                                                    selectedNode.connect(node.from_index, addNode, node.to_index);
+                                                }
+                                            }
                                         }}
                                         onMouseEnter={() => setHoveredNode(node.name)}
                                         onMouseLeave={() => setHoveredNode(null)}
@@ -54,11 +63,11 @@ export function NodeRecommend({ content, name = 'Assistant', avatar }: NodeRecom
                     </div>
                 )}
 
-                {parsedContent.non_existing_nodes && (
+                {response.node_info?.missing_nodes && response.node_info.missing_nodes.length > 0 && (
                     <div className="space-y-3 mt-4">
                         <p>Other recommended nodes (requires installation):</p>
                         <div className="flex flex-wrap gap-2">
-                            {parsedContent.non_existing_nodes.map((node: any) => (
+                            {response.node_info.missing_nodes.map((node: Node) => (
                                 <div key={node.name} className="relative group">
                                     <a
                                         href={node.github_url}
@@ -89,12 +98,6 @@ export function NodeRecommend({ content, name = 'Assistant', avatar }: NodeRecom
                                 </div>
                             ))}
                         </div>
-                    </div>
-                )}
-
-                {parsedContent.ai_message && (
-                    <div className="mt-4 text-gray-600">
-                        <p>{parsedContent.ai_message}</p>
                     </div>
                 )}
             </div>

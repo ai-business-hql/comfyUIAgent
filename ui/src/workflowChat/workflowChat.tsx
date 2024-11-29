@@ -88,62 +88,41 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
         if ((input.trim() === "" && !selectedNodeInfo) || !sessionId) return;
         setLoading(true);
 
-        const newMessage = {
+        const userMessage: Message = {
             id: crypto.randomUUID(),
             role: "user",
             content: input,
-            toolCalls: {}
         };
 
-        setMessages([...messages, newMessage]);
+        setMessages(prev => [...prev, userMessage]);
         setInput("");
 
         try {
-            let currentAiMessage: Message | null = null;
-            let accumulatedContent = '';
+            for await (const response of WorkflowChatAPI.streamInvokeServer(sessionId, input)) {
+                const aiMessage: Message = {
+                    id: crypto.randomUUID(),
+                    role: "ai",
+                    content: JSON.stringify(response),
+                    type: response.type,
+                    format: response.format,
+                    finished: response.finished,
+                    name: "Assistant"
+                };
 
-            for await (const chunk of WorkflowChatAPI.streamMessage(sessionId, input)) {
-                if (chunk.is_chunk) {
-                    // 处理流式内容
-                    accumulatedContent += chunk.content;
-                    if (currentAiMessage) {
-                        const updatedMessage = { ...currentAiMessage };
-                        if (updatedMessage.type === 'message') {
-                            updatedMessage.content = accumulatedContent;
-                        } else {
-                            const content = JSON.parse(updatedMessage.content || '{}');
-                            content.ai_message = accumulatedContent;
-                            updatedMessage.content = JSON.stringify(content);
-                        }
-                        // 使用消息ID来更新现有消息
-                        setMessages(prev => prev.map(msg =>
-                            msg.id === updatedMessage.id ? updatedMessage : msg
-                        ));
+                setMessages(prev => {
+                    const lastMessage = prev[prev.length - 1];
+                    if (lastMessage.role === 'ai') {
+                        return [...prev.slice(0, -1), aiMessage];
                     }
-                } else {
-                    // 处理完整消息或初始消息结构
-                    currentAiMessage = chunk;
-                    if (chunk.type === 'message' || chunk.type === 'workflow_option') {
-                        try {
-                            const content = JSON.parse(chunk.content || '{}');
-                            accumulatedContent = content.ai_message || '';
-                        } catch {
-                            accumulatedContent = chunk.content || '';
-                        }
-                    }
-                    // 检查是否已存在相同ID的消息
-                    setMessages(prev => {
-                        const messageExists = prev.some(msg => msg.id === chunk.id);
-                        if (messageExists) {
-                            return prev.map(msg => msg.id === chunk.id ? chunk : msg);
-                        }
-                        return [...prev, chunk];
-                    });
+                    return [...prev, aiMessage];
+                });
+
+                if (response.finished) {
+                    setLoading(false);
                 }
             }
         } catch (error) {
             console.error('Error sending message:', error);
-        } finally {
             setLoading(false);
         }
     };

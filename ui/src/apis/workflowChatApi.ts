@@ -1,5 +1,5 @@
 import { fetchApi } from "../Api";
-import { Message } from "../types/types";
+import { Message, ChatResponse } from "../types/types";
 
 export namespace WorkflowChatAPI {
   export async function fetchMessages(sessionId: string): Promise<Message[]> {
@@ -12,7 +12,7 @@ export namespace WorkflowChatAPI {
     }
   }
 
-  export async function* streamMessage(sessionId: string, message: string): AsyncGenerator<Message> {
+  export async function* streamMessage(sessionId: string, message: string): AsyncGenerator<ChatResponse> {
     const response = await fetchApi('/workspace/workflow_gen', {
       method: 'POST',
       headers: {
@@ -37,13 +37,54 @@ export namespace WorkflowChatAPI {
 
       for (const line of lines) {
         if (line.trim()) {
-          yield JSON.parse(line);
+          yield JSON.parse(line) as ChatResponse;
         }
       }
     }
 
     if (buffer.trim()) {
-      yield JSON.parse(buffer);
+      yield JSON.parse(buffer) as ChatResponse;
+    }
+  }
+
+  export async function* streamInvokeServer(sessionId: string, prompt: string): AsyncGenerator<ChatResponse> {
+    const response = await fetch('http://localhost:8000/api/chat/invoke', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'accept': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      },
+      body: JSON.stringify({
+        session_id: sessionId,
+        prompt: prompt,
+        mock: true
+      }),
+    });
+
+    const reader = response.body!.getReader();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      
+      buffer += new TextDecoder().decode(value);
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        if (line.trim()) {
+          yield JSON.parse(line) as ChatResponse;
+        }
+      }
+    }
+
+    if (buffer.trim()) {
+      yield JSON.parse(buffer) as ChatResponse;
     }
   }
 }
+
+  
+
