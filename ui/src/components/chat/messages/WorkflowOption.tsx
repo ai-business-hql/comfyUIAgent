@@ -31,13 +31,18 @@ export function WorkflowOption({ content, name = 'Assistant', avatar, latestInpu
             if (optimizedResult.workflow) {
                 app.loadGraphData(optimizedResult.workflow);
                 
-                // 应用优化后的参数
-                // for (const [nodeId, paramName, paramType, paramPath, value] of optimizedResult.optimized_params) {
-                //     const node = app.graph.getNodeById(nodeId);
-                //     if (node) {
-                //         node.setProperty(paramPath, value);
-                //     }
-                // }
+                // 应用优化后的参数 [节点id，节点名称，参数id，参数名称，参数默认值]
+                for (const [nodeId, nodeName, paramIndex, paramName, value] of optimizedResult.optimized_params) {
+                    //app.graph._nodes_by_id[30].widgets[3].value=8
+                    const widgets = app.graph._nodes_by_id[nodeId].widgets
+                    console.log(widgets)
+                    for (const widget of widgets) {
+                        if (widget.name === paramName) {
+                            widget.value = value
+                        }
+                    }
+                }
+                app.graph.setDirtyCanvas(false, true)
             }
         } catch (error) {
             console.error('Failed to optimize workflow:', error);
