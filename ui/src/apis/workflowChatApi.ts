@@ -1,5 +1,5 @@
 import { fetchApi } from "../Api";
-import { Message, ChatResponse } from "../types/types";
+import { Message, ChatResponse, OptimizedWorkflowRequest, OptimizedWorkflowResponse } from "../types/types";
 
 export namespace WorkflowChatAPI {
   export async function fetchMessages(sessionId: string): Promise<Message[]> {
@@ -58,7 +58,7 @@ export namespace WorkflowChatAPI {
       body: JSON.stringify({
         session_id: sessionId,
         prompt: prompt,
-        mock: true
+        mock: false
       }),
     });
 
@@ -82,6 +82,36 @@ export namespace WorkflowChatAPI {
 
     if (buffer.trim()) {
       yield JSON.parse(buffer) as ChatResponse;
+    }
+  }
+
+  export async function getOptimizedWorkflow(
+    workflowId: number, 
+    prompt: string
+  ): Promise<OptimizedWorkflowResponse> {
+    try {
+      const response = await fetch('http://localhost:8000/api/chat/get_optimized_workflow', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'accept': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        },
+        body: JSON.stringify({
+          workflow_id: workflowId,
+          prompt: prompt
+        } as OptimizedWorkflowRequest),
+      });
+
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to get optimized workflow');
+      }
+
+      return result.data as OptimizedWorkflowResponse;
+    } catch (error) {
+      console.error('Error getting optimized workflow:', error);
+      throw error;
     }
   }
 }

@@ -18,6 +18,7 @@ export function AIMessage({ content, name = 'Assistant', avatar, format, onOptio
     const renderContent = () => {
         try {
             const response = JSON.parse(content) as ChatResponse;
+            const guides = response.ext?.find(item => item.type === 'guides')?.data || [];
             
             if (format === 'markdown' && response.text) {
                 return (
@@ -41,9 +42,9 @@ export function AIMessage({ content, name = 'Assistant', avatar, format, onOptio
                             {response.text}
                         </p>
                     )}
-                    {response.guides && response.guides.length > 0 && (
+                    {guides.length > 0 && (
                         <div className="flex flex-wrap gap-2 mt-2">
-                            {response.guides.map((guide: string, index: number) => (
+                            {guides.map((guide: string, index: number) => (
                                 <button
                                     key={index}
                                     className="px-3 py-1.5 bg-white text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-xs w-full"

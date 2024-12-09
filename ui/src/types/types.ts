@@ -50,18 +50,19 @@ export interface Workflow {
   name?: string;
   description?: string;
   image?: string;
-  workflow?: string;
+}
+
+export interface ExtItem {
+  type: string;
+  data: any;
 }
 
 export interface ChatResponse {
   session_id: string;
   text?: string;
   finished: boolean;
-  recommend_workflows: Workflow[];
-  type: string;
   format: string;
-  node_info?: NodeInfo;
-  guides: string[];
+  ext?: ExtItem[];
 }
 
 export interface Message {
@@ -100,4 +101,14 @@ export interface WorkflowOption {
 export interface MessageContent {
   ai_message: string;
   options?: string[] | WorkflowOption[];
+}
+
+export interface OptimizedWorkflowRequest {
+  workflow_id: number;
+  prompt: string;
+}
+
+export interface OptimizedWorkflowResponse {
+  workflow: any;  // 工作流数据
+  optimized_params: [number, string, number, string, string | number | boolean][];  // 优化后的参数
 }

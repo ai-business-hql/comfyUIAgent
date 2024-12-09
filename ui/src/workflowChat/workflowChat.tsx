@@ -14,6 +14,7 @@ interface WorkflowChatProps {
 export default function WorkflowChat({ onClose }: WorkflowChatProps) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState<string>('');
+    const [latestInput, setLatestInput] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
     const [sessionId, setSessionId] = useState<string>();
     const messageDivRef = useRef<HTMLDivElement>(null);
@@ -87,6 +88,7 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
     const handleSendMessage = async () => {
         if ((input.trim() === "" && !selectedNodeInfo) || !sessionId) return;
         setLoading(true);
+        setLatestInput(input);
 
         const userMessage: Message = {
             id: crypto.randomUUID(),
@@ -166,6 +168,7 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
                 <div className="flex-1 overflow-y-auto p-4 scroll-smooth" ref={messageDivRef}>
                     <MessageList 
                         messages={messages}
+                        latestInput={latestInput}
                         onOptionClick={handleOptionClick}
                     />
                 </div>

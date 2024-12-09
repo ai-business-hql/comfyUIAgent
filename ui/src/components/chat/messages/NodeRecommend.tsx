@@ -12,6 +12,8 @@ interface NodeRecommendProps {
 export function NodeRecommend({ content, name = 'Assistant', avatar }: NodeRecommendProps) {
     const response = JSON.parse(content) as ChatResponse;
     const [hoveredNode, setHoveredNode] = useState<string | null>(null);
+    
+    const nodes = response.ext?.find(item => item.type === 'node')?.data || [];
 
     return (
         <BaseMessage avatar={avatar} name={name}>
@@ -20,11 +22,11 @@ export function NodeRecommend({ content, name = 'Assistant', avatar }: NodeRecom
                     <p className="mb-4">{response.text}</p>
                 )}
                 
-                {response.node_info?.existing_nodes && response.node_info.existing_nodes.length > 0 && (
+                {nodes.length > 0 && (
                     <div className="space-y-3">
                         <p>Recommended downstream nodes that can be connected:</p>
                         <div className="flex flex-wrap gap-2">
-                            {response.node_info.existing_nodes.map((node: Node) => (
+                            {nodes.map((node: Node) => (
                                 <div key={node.name} className="relative group">
                                     <button
                                         className="px-3 py-1.5 bg-blue-500 text-white rounded-md 
