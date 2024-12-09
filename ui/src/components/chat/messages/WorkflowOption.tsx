@@ -35,7 +35,6 @@ export function WorkflowOption({ content, name = 'Assistant', avatar, latestInpu
                 for (const [nodeId, nodeName, paramIndex, paramName, value] of optimizedResult.optimized_params) {
                     //app.graph._nodes_by_id[30].widgets[3].value=8
                     const widgets = app.graph._nodes_by_id[nodeId].widgets
-                    console.log(widgets)
                     for (const widget of widgets) {
                         if (widget.name === paramName) {
                             widget.value = value

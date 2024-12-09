@@ -28,7 +28,7 @@ export function AIMessage({ content, name = 'Assistant', avatar, format, onOptio
                             rehypeKatex
                         ]}
                         remarkPlugins={[remarkGfm, remarkMath]}
-                        className="prose prose-sm max-w-none break-words"
+                        className="prose prose-sm max-w-none break-words whitespace-pre-wrap"
                     >
                         {response.text}
                     </MemoizedReactMarkdown>
