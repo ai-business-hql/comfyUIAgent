@@ -6,6 +6,7 @@ import { ChatHeader } from "../components/chat/ChatHeader";
 import { ChatInput } from "../components/chat/ChatInput";
 import { SelectedNodeInfo } from "../components/chat/SelectedNodeInfo";
 import { MessageList } from "../components/chat/MessageList";
+import { generateUUID } from "../utils/uuid";
 
 interface WorkflowChatProps {
     onClose?: () => void;
@@ -42,7 +43,7 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
             setSessionId(sid);
             fetchMessages(sid);
         } else {
-            sid = crypto.randomUUID();
+            sid = generateUUID();
             setSessionId(sid);
             localStorage.setItem("sessionId", sid);
         }
@@ -91,7 +92,7 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
         setLatestInput(input);
 
         const userMessage: Message = {
-            id: crypto.randomUUID(),
+            id: generateUUID(),
             role: "user",
             content: input,
         };
@@ -102,7 +103,7 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
         try {
             for await (const response of WorkflowChatAPI.streamInvokeServer(sessionId, input)) {
                 const aiMessage: Message = {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     role: "ai",
                     content: JSON.stringify(response),
                     type: response.type,
@@ -138,7 +139,7 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
     const handleClearMessages = () => {
         setMessages([]);
         localStorage.removeItem("sessionId");
-        const newSessionId = crypto.randomUUID();
+        const newSessionId = generateUUID();
         setSessionId(newSessionId);
         localStorage.setItem("sessionId", newSessionId);
     };
