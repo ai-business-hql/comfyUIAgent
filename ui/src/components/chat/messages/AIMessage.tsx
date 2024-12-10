@@ -31,8 +31,11 @@ export function AIMessage({ content, name = 'Assistant', avatar, format, onOptio
                 rehypeKatex
               ]}
               remarkPlugins={[remarkGfm, remarkMath]}
-              className="prose prose-sm prose-neutral prose-a:text-accent-foreground/50 break-words whitespace-pre-wrap"
+              className="prose prose-sm prose-neutral prose-a:text-accent-foreground/50 break-words [&>*]:!my-1 leading-relaxed"
               components={{
+                p: ({ children }) => {
+                  return <p className="!my-0.5 leading-relaxed">{children}</p>
+                },
                 table: ({ children }) => (
                   <table className="border-solid border border-[#979797] w-[100%]">{children}</table>
                 ),
