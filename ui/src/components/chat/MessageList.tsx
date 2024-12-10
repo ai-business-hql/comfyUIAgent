@@ -14,7 +14,7 @@ const getAvatar = (name?: string) => {
     return `https://ui-avatars.com/api/?name=${name || 'User'}&background=random`;
 };
 
-export function MessageList({ messages, onOptionClick }: MessageListProps) {
+export function MessageList({ messages, latestInput, onOptionClick }: MessageListProps) {
     const renderMessage = (message: Message) => {
         if (message.role === 'user') {
             return <UserMessage key={message.id} content={message.content} name={message.name} />;
@@ -23,48 +23,59 @@ export function MessageList({ messages, onOptionClick }: MessageListProps) {
         if (message.role === 'ai' || message.role === 'tool') {
             const avatar = getAvatar(message.role);
             
-            switch (message.type) {
-                case 'message':
-                    return (
-                        <AIMessage 
-                            key={message.id}
-                            content={message.content}
-                            name={message.name}
-                            avatar={avatar}
-                            format={message.format}
-                            onOptionClick={onOptionClick}
-                        />
-                    );
-                case 'workflow_option':
+            try {
+                const response = JSON.parse(message.content);
+                const messageType = response.ext?.find(item => item.type === 'message');
+                const workflowType = response.ext?.find(item => item.type === 'workflow');
+                // const nodeType = response.ext?.find(item => item.type === 'node');
+                
+                // 根据ext中的类型来决定渲染哪个组件
+                if (workflowType) {
                     return (
                         <WorkflowOption
                             key={message.id}
                             content={message.content}
                             name={message.name}
                             avatar={avatar}
-                            onOptionClick={onOptionClick}
+                            latestInput={latestInput}
                         />
                     );
-                case 'node_search':
-                    return (
-                        <NodeSearch
-                            key={message.id}
-                            content={message.content}
-                            name={message.name}
-                            avatar={avatar}
-                        />
-                    );
-                case 'downstream_node_recommend':
-                    return (
-                        <NodeRecommend
-                            key={message.id}
-                            content={message.content}
-                            name={message.name}
-                            avatar={avatar}
-                        />
-                    );
-                default:
-                    return null;
+                }
+                
+                // if (nodeType) {
+                //     return (
+                //         <NodeSearch
+                //             key={message.id}
+                //             content={message.content}
+                //             name={message.name}
+                //             avatar={avatar}
+                //         />
+                //     );
+                // }
+                
+                // 默认使用AIMessage
+                return (
+                    <AIMessage 
+                        key={message.id}
+                        content={message.content}
+                        name={message.name}
+                        avatar={avatar}
+                        format={message.format}
+                        onOptionClick={onOptionClick}
+                    />
+                );
+            } catch {
+                // 如果解析JSON失败,使用AIMessage
+                return (
+                    <AIMessage 
+                        key={message.id}
+                        content={message.content}
+                        name={message.name}
+                        avatar={avatar}
+                        format={message.format}
+                        onOptionClick={onOptionClick}
+                    />
+                );
             }
         }
 

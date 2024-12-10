@@ -5,7 +5,7 @@ import folder_paths
 import shutil
 import os
 import sys
-import subprocess 
+import subprocess
 import subprocess
 import os
 import json
@@ -79,7 +79,7 @@ async def update_file(request):
         os.makedirs(os.path.dirname(full_path), exist_ok=True)
         with open(full_path, 'w', encoding='utf-8') as file:
             file.write(json_str)
-            
+
     # Offload the file update to a separate thread
     await asyncio.to_thread(write_json_to_file, json_str)
     return web.Response(text="File updated successfully")
@@ -106,7 +106,7 @@ async def delete_file(request):
 
     # Run the synchronous file operation in a separate thread
     response_text = await asyncio.to_thread(sync_delete_file, file_path)
-    
+
     if response_text == "File not found":
         return web.Response(text=response_text, status=404)
     else:
@@ -149,4 +149,3 @@ async def delete_folder(request):
         return web.Response(text="Successfully deleted folder: {folder_path}")
     else:
         return web.Response(text="folder not found: {folder_path}", status=404)
-        

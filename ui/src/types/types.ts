@@ -31,15 +31,48 @@ export type ShareWorkflowData = {
   privacy: EWorkflowPrivacy;
 };
 
+export interface Node {
+  name: string;
+  description: string;
+  image: string;
+  github_url: string;
+  from_index: number;
+  to_index: number;
+}
+
+export interface NodeInfo {
+  existing_nodes: Node[];
+  missing_nodes: Node[];
+}
+
+export interface Workflow {
+  id?: number;
+  name?: string;
+  description?: string;
+  image?: string;
+}
+
+export interface ExtItem {
+  type: string;
+  data: any;
+}
+
+export interface ChatResponse {
+  session_id: string;
+  text?: string;
+  finished: boolean;
+  format: string;
+  ext?: ExtItem[];
+}
+
 export interface Message {
   id: string;
   content: string;
-  role: string;
+  role: 'user' | 'ai' | 'tool';
   name?: string;
-  toolCalls?: any;
-  type?: 'message' | 'workflow_option' | 'node_search' | 'downstream_node_recommend';
-  is_chunk?: boolean;
-  format?: 'markdown' | 'text';
+  type?: string;
+  format?: string;
+  finished?: boolean;
 }
 
 export interface ToolCall {
@@ -68,4 +101,14 @@ export interface WorkflowOption {
 export interface MessageContent {
   ai_message: string;
   options?: string[] | WorkflowOption[];
+}
+
+export interface OptimizedWorkflowRequest {
+  workflow_id: number;
+  prompt: string;
+}
+
+export interface OptimizedWorkflowResponse {
+  workflow: any;  // 工作流数据
+  optimized_params: [number, string, number, string, string | number | boolean][];  // 优化后的参数
 }
