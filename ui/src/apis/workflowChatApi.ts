@@ -1,5 +1,8 @@
+import { config } from '../config'
 import { fetchApi } from "../Api";
 import { Message, ChatResponse, OptimizedWorkflowRequest, OptimizedWorkflowResponse } from "../types/types";
+
+const BASE_URL = config.apiBaseUrl
 
 export namespace WorkflowChatAPI {
   export async function fetchMessages(sessionId: string): Promise<Message[]> {
@@ -48,7 +51,7 @@ export namespace WorkflowChatAPI {
   }
 
   export async function* streamInvokeServer(sessionId: string, prompt: string): AsyncGenerator<ChatResponse> {
-    const response = await fetch('http://localhost:8000/api/chat/invoke', {
+    const response = await fetch(`${BASE_URL}/api/chat/invoke`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -90,7 +93,7 @@ export namespace WorkflowChatAPI {
     prompt: string
   ): Promise<OptimizedWorkflowResponse> {
     try {
-      const response = await fetch('http://localhost:8000/api/chat/get_optimized_workflow', {
+      const response = await fetch(`${BASE_URL}/api/chat/get_optimized_workflow`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

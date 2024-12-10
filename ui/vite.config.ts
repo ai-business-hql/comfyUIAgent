@@ -25,10 +25,10 @@ const rewriteImportPlugin = ({ isDev }) => {
 export default defineConfig(({ mode }) => ({
   envDir: ".",
   build: {
-    watch: {
+    watch: mode === "development" ? {
       include: ["src/**"],
       buildStart() {
-        // Start Tailwind CSS watch process
+        // 只在开发模式下启动 Tailwind CSS watch 进程
         console.log("Starting Tailwind CSS watch process...");
         const tailwindProcess = exec(
           'npx tailwindcss -i ./src/input.css -o ./src/output.css --watch',
@@ -49,9 +49,9 @@ export default defineConfig(({ mode }) => ({
         process.on('exit', () => {
           tailwindProcess.kill();
         });
-        console.log("Tailwind CSS watch process s.");
+        console.log("Tailwind CSS watch process started.");
       }
-    },
+    } : undefined,  // 在生产环境下不启用 watch
     // minify: false, // ___DEBUG__MODE only
     // sourcemap: true, // ___DEBUG___MODE only
     emptyOutDir: true,
