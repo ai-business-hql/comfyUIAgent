@@ -2,6 +2,11 @@ import { app } from "../../../utils/comfyapp";
 import { BaseMessage } from './BaseMessage';
 import { ChatResponse, Workflow } from "../../../types/types";
 import { WorkflowChatAPI } from "../../../apis/workflowChatApi";
+import { MemoizedReactMarkdown } from "../../markdown";
+import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import rehypeExternalLinks from 'rehype-external-links';
 
 interface WorkflowOptionProps {
     content: string;
@@ -51,8 +56,23 @@ export function WorkflowOption({ content, name = 'Assistant', avatar, latestInpu
     return (
         <BaseMessage avatar={avatar} name={name}>
             <div className="space-y-3">
-                <div className="rounded-lg bg-green-50 p-3 text-sm whitespace-pre-wrap">
-                    {response.text && <p>{response.text}</p>}
+                <div className="rounded-lg bg-green-50 p-3 text-sm">
+                    {response.text && (
+                        <MemoizedReactMarkdown
+                            rehypePlugins={[
+                                [rehypeExternalLinks, { target: '_blank' }],
+                                rehypeKatex
+                            ]}
+                            remarkPlugins={[remarkGfm, remarkMath]}
+                            className="prose prose-sm prose-neutral prose-a:text-accent-foreground/50 break-words [&>*]:!my-1 leading-relaxed"
+                            components={{
+                                p: ({ children }) => <p className="!my-0.5 leading-relaxed">{children}</p>,
+                                // ... 可以根据需要添加其他 Markdown 组件的样式
+                            }}
+                        >
+                            {response.text}
+                        </MemoizedReactMarkdown>
+                    )}
                 </div>
                 {workflows.length > 0 && (
                     <div className="flex flex-col space-y-4">
