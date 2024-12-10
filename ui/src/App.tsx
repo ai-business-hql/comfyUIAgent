@@ -4,7 +4,7 @@ const WorkflowChat = React.lazy(() => import("./workflowChat/workflowChat"));
 
 export default function App() {
   const workspaceContainerRef = useRef(null);
-  const [showChat, setShowChat] = useState(true);
+  const [showChat, setShowChat] = useState(false);
 
   return (
     <div ref={workspaceContainerRef}>
