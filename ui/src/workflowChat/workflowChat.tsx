@@ -9,9 +9,10 @@ import { MessageList } from "../components/chat/MessageList";
 
 interface WorkflowChatProps {
     onClose?: () => void;
+    visible?: boolean;
 }
 
-export default function WorkflowChat({ onClose }: WorkflowChatProps) {
+export default function WorkflowChat({ onClose, visible = true }: WorkflowChatProps) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState<string>('');
     const [latestInput, setLatestInput] = useState<string>('');
@@ -156,8 +157,9 @@ export default function WorkflowChat({ onClose }: WorkflowChatProps) {
     };
 
     return (
+
         <div className="fixed top-0 right-0 h-full w-1/3 shadow-lg bg-white
-                        transition-all duration-300 ease-in-out hover:shadow-xl text-gray-700">
+                        transition-all duration-300 ease-in-out hover:shadow-xl text-gray-700" style={{ display: visible ? 'block' : 'none' }}>
             <div className="flex h-full flex-col">
                 <ChatHeader 
                     onClose={onClose}

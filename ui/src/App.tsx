@@ -4,7 +4,7 @@ const WorkflowChat = React.lazy(() => import("./workflowChat/workflowChat"));
 
 export default function App() {
   const workspaceContainerRef = useRef(null);
-  const [showChat, setShowChat] = useState(true);
+  const [showChat, setShowChat] = useState(false);
 
   return (
     <div ref={workspaceContainerRef}>
@@ -15,7 +15,8 @@ export default function App() {
         >
           show chat
         </button>
-        {showChat && <WorkflowChat onClose={() => setShowChat(false)} />}
+        {/* {showChat && <WorkflowChat onClose={() => setShowChat(false)} />} */}
+        <WorkflowChat onClose={() => setShowChat(false)} visible={showChat} />
       </div>
     </div>
   );
