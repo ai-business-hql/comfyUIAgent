@@ -12,70 +12,65 @@ interface AIMessageProps {
   avatar: string;
   format?: string;
   onOptionClick?: (option: string) => void;
+  extComponent?: React.ReactNode;
 }
 
-export function AIMessage({ content, name = 'Assistant', avatar, format, onOptionClick }: AIMessageProps) {
+export function AIMessage({ content, name = 'Assistant', avatar, format, onOptionClick, extComponent }: AIMessageProps) {
   const markdownWrapper = useRef<HTMLDivElement | null>()
   const renderContent = () => {
     try {
       const response = JSON.parse(content) as ChatResponse;
       const guides = response.ext?.find(item => item.type === 'guides')?.data || [];
 
-      if (format === 'markdown' && response.text) {
-        return (
-          <div ref={markdownWrapper as React.RefObject<HTMLDivElement>}>
-
-            <MemoizedReactMarkdown
-              rehypePlugins={[
-                [rehypeExternalLinks, { target: '_blank' }],
-                rehypeKatex
-              ]}
-              remarkPlugins={[remarkGfm, remarkMath]}
-              className="prose prose-sm prose-neutral prose-a:text-accent-foreground/50 break-words [&>*]:!my-1 leading-relaxed"
-              components={{
-                p: ({ children }) => {
-                  return <p className="!my-0.5 leading-relaxed">{children}</p>
-                },
-                table: ({ children }) => (
-                  <table className="border-solid border border-[#979797] w-[100%]">{children}</table>
-                ),
-                th: ({ children }) => (
-                  <th className="border-solid bg-[#E5E7ED] dark:bg-[#FFFFFF] dark:text-[#000000] border border-[#979797] text-center pt-2">{children}</th>
-                ),
-                td: ({ children }) => {
-                  if (Array.isArray(children) && children?.length > 0) {
-                    const list: any[] = [];
-                    const length = children.length;
-                    for (let i = 0; i < length; i++) {
-                      if (children[i] === '<br>') {
-                        list.push(<br />)
-                      } else {
-                        list.push(children[i])
-                      }
-                    }
-                    children = list;
-                  }
-                  return (
-                    <td className="border-solid border border-[#979797] text-center">{children}</td>
-                  )
-                },
-              }}
-            >
-              {response.text}
-            </MemoizedReactMarkdown>
-
-          </div>
-
-        );
-      }
-
       return (
         <div className="space-y-3">
-          {response.text && (
+          {format === 'markdown' && response.text ? (
+            <div ref={markdownWrapper as React.RefObject<HTMLDivElement>}>
+              <MemoizedReactMarkdown
+                rehypePlugins={[
+                  [rehypeExternalLinks, { target: '_blank' }],
+                  rehypeKatex
+                ]}
+                remarkPlugins={[remarkGfm, remarkMath]}
+                className="prose prose-sm prose-neutral prose-a:text-accent-foreground/50 break-words [&>*]:!my-1 leading-relaxed"
+                components={{
+                  p: ({ children }) => {
+                    return <p className="!my-0.5 leading-relaxed">{children}</p>
+                  },
+                  table: ({ children }) => (
+                    <table className="border-solid border border-[#979797] w-[100%]">{children}</table>
+                  ),
+                  th: ({ children }) => (
+                    <th className="border-solid bg-[#E5E7ED] dark:bg-[#FFFFFF] dark:text-[#000000] border border-[#979797] text-center pt-2">{children}</th>
+                  ),
+                  td: ({ children }) => {
+                    if (Array.isArray(children) && children?.length > 0) {
+                      const list: any[] = [];
+                      const length = children.length;
+                      for (let i = 0; i < length; i++) {
+                        if (children[i] === '<br>') {
+                          list.push(<br />)
+                        } else {
+                          list.push(children[i])
+                        }
+                      }
+                      children = list;
+                    }
+                    return (
+                      <td className="border-solid border border-[#979797] text-center">{children}</td>
+                    )
+                  },
+                }}
+              >
+                {response.text}
+              </MemoizedReactMarkdown>
+            </div>
+          ) : response.text ? (
             <p className="whitespace-pre-wrap">
               {response.text}
             </p>
-          )}
+          ) : null}
+
           {guides.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-2">
               {guides.map((guide: string, index: number) => (
@@ -89,6 +84,8 @@ export function AIMessage({ content, name = 'Assistant', avatar, format, onOptio
               ))}
             </div>
           )}
+
+          {extComponent}
         </div>
       );
     } catch {

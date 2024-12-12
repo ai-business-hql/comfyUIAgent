@@ -1,6 +1,6 @@
 const isDevelopment = import.meta.env.MODE === 'development'
 
-const defaultApiBaseUrl = 'http://localhost:3000'
+const defaultApiBaseUrl = 'http://localhost:8000'
 
 export const config = {
   apiBaseUrl: isDevelopment 

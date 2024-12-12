@@ -54,26 +54,8 @@ export function WorkflowOption({ content, name = 'Assistant', avatar, latestInpu
     };
     
     return (
-        <BaseMessage avatar={avatar} name={name}>
+        // <BaseMessage avatar={avatar} name={name}>
             <div className="space-y-3">
-                <div className="rounded-lg bg-green-50 p-3 text-sm">
-                    {response.text && (
-                        <MemoizedReactMarkdown
-                            rehypePlugins={[
-                                [rehypeExternalLinks, { target: '_blank' }],
-                                rehypeKatex
-                            ]}
-                            remarkPlugins={[remarkGfm, remarkMath]}
-                            className="prose prose-sm prose-neutral prose-a:text-accent-foreground/50 break-words [&>*]:!my-1 leading-relaxed"
-                            components={{
-                                p: ({ children }) => <p className="!my-0.5 leading-relaxed">{children}</p>,
-                                // ... 可以根据需要添加其他 Markdown 组件的样式
-                            }}
-                        >
-                            {response.text}
-                        </MemoizedReactMarkdown>
-                    )}
-                </div>
                 {workflows.length > 0 && (
                     <div className="flex flex-col space-y-4">
                         {workflows.map((workflow: Workflow, index: number) => (
@@ -106,6 +88,6 @@ export function WorkflowOption({ content, name = 'Assistant', avatar, latestInpu
                     </div>
                 )}
             </div>
-        </BaseMessage>
+        // </BaseMessage>
     );
 } 

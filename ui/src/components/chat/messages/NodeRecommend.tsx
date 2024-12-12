@@ -16,12 +16,8 @@ export function NodeRecommend({ content, name = 'Assistant', avatar }: NodeRecom
     const nodes = response.ext?.find(item => item.type === 'node')?.data || [];
 
     return (
-        <BaseMessage avatar={avatar} name={name}>
+        // <BaseMessage avatar={avatar} name={name}>
             <div className="rounded-lg bg-green-50 p-3 text-gray-700 text-sm break-words overflow-visible">
-                {response.text && (
-                    <p className="mb-4">{response.text}</p>
-                )}
-                
                 {nodes.length > 0 && (
                     <div className="space-y-3">
                         <p>Recommended downstream nodes that can be connected:</p>
@@ -103,6 +99,6 @@ export function NodeRecommend({ content, name = 'Assistant', avatar }: NodeRecom
                     </div>
                 )}
             </div>
-        </BaseMessage>
+        // </BaseMessage>
     );
 } 
