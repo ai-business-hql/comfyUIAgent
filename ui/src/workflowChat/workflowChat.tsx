@@ -7,6 +7,7 @@ import { ChatInput } from "../components/chat/ChatInput";
 import { SelectedNodeInfo } from "../components/chat/SelectedNodeInfo";
 import { MessageList } from "../components/chat/MessageList";
 import { generateUUID } from "../utils/uuid";
+import { getInstalledNodes, getObjectInfo } from "../apis/comfyApiCustom";
 
 interface WorkflowChatProps {
     onClose?: () => void;
@@ -21,12 +22,22 @@ export default function WorkflowChat({ onClose, visible = true }: WorkflowChatPr
     const [sessionId, setSessionId] = useState<string>();
     const messageDivRef = useRef<HTMLDivElement>(null);
     const [selectedNodeInfo, setSelectedNodeInfo] = useState<any>(null);
+    const [installedNodes, setInstalledNodes] = useState<any[]>([]);
 
     useEffect(() => {
         if (messageDivRef.current) {
             messageDivRef.current.scrollTop = messageDivRef.current.scrollHeight
         }
     }, [messages])
+
+    useEffect(() => {
+        const fetchInstalledNodes = async () => {
+            const nodes = await getInstalledNodes();
+            console.log("installed nodes:", nodes);
+            setInstalledNodes(nodes);
+        };
+        fetchInstalledNodes();
+    }, []);
 
     // 获取历史消息
     const fetchMessages = async (sid: string) => {
@@ -167,12 +178,18 @@ export default function WorkflowChat({ onClose, visible = true }: WorkflowChatPr
                     onClear={handleClearMessages}
                     hasMessages={messages.length > 0}
                 />
+                <div>
+                    {installedNodes.map((node: any) => (
+                        <div key={node.name}>{node.name}</div>
+                    ))}
+                </div>
                 
                 <div className="flex-1 overflow-y-auto p-4 scroll-smooth" ref={messageDivRef}>
                     <MessageList 
                         messages={messages}
                         latestInput={latestInput}
                         onOptionClick={handleOptionClick}
+                        installedNodes={installedNodes}
                     />
                 </div>
 

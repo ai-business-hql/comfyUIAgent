@@ -8,13 +8,15 @@ import { NodeRecommend } from "./messages/NodeRecommend";
 interface MessageListProps {
     messages: Message[];
     onOptionClick: (option: string) => void;
+    latestInput: string;
+    installedNodes: any[];
 }
 
 const getAvatar = (name?: string) => {
     return `https://ui-avatars.com/api/?name=${name || 'User'}&background=random`;
 };
 
-export function MessageList({ messages, latestInput, onOptionClick }: MessageListProps) {
+export function MessageList({ messages, latestInput, onOptionClick, installedNodes }: MessageListProps) {
     const renderMessage = (message: Message) => {
         if (message.role === 'user') {
             return <UserMessage key={message.id} content={message.content} name={message.name} />;
@@ -40,6 +42,7 @@ export function MessageList({ messages, latestInput, onOptionClick }: MessageLis
                             name={message.name}
                             avatar={avatar}
                             latestInput={latestInput}
+                            installedNodes={installedNodes}
                         />
                     );
                 } else if (nodeRecommendExt) {
@@ -48,6 +51,7 @@ export function MessageList({ messages, latestInput, onOptionClick }: MessageLis
                             content={message.content}
                             name={message.name}
                             avatar={avatar}
+                            installedNodes={installedNodes}
                         />
                     );
                 } else if (nodeExt) {
@@ -56,6 +60,7 @@ export function MessageList({ messages, latestInput, onOptionClick }: MessageLis
                             content={message.content}
                             name={message.name}
                             avatar={avatar}
+                            installedNodes={installedNodes}
                         />
                     );
                 }
