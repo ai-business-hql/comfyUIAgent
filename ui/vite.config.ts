@@ -24,7 +24,6 @@ const rewriteImportPlugin = ({ isDev }) => {
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   envDir: ".",
-  base: '/dsw-2976/proxy/8188/',
   build: {
     watch: mode === "development" ? {
       include: ["src/**"],
@@ -70,9 +69,9 @@ export default defineConfig(({ mode }) => ({
         },
         dir: "../dist",
         // assetFileNames: "[name]-[hash][extname]",
-        entryFileNames: "dsw-2976/proxy/8188/copilot_web/[name].js",
-        chunkFileNames: `dsw-2976/proxy/8188/copilot_web/[name]-[hash].js`,
-        assetFileNames: `dsw-2976/proxy/8188/copilot_web/assets/[name]-[hash].[ext]`,
+        entryFileNames: "copilot_web/[name].js",
+        chunkFileNames: `copilot_web/[name]-[hash].js`,
+        assetFileNames: `copilot_web/assets/[name]-[hash].[ext]`,
       },
     },
   },
