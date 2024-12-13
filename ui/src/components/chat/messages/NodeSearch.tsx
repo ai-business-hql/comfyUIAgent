@@ -24,10 +24,10 @@ export function NodeSearch({ content, name = 'Assistant', avatar, installedNodes
     const uninstalledNodesList = nodes.filter(node => !isNodeInstalled(node.name));
 
     return (
-        <div className="rounded-lg bg-green-50 p-3 text-gray-700 text-sm break-words overflow-visible">
+        <div className="rounded-lg bg-green-50 p-3 text-gray-700 text-xs break-words overflow-visible">
             {installedNodesList.length > 0 && (
                 <div className="space-y-3">
-                    <p>Available nodes that can be added to canvas:</p>
+                    <p className="text-xs">Available nodes that can be added to canvas:</p>
                     <div className="flex flex-wrap gap-2">
                         {installedNodesList.map((node: Node) => (
                             <div key={node.name} className="relative group">
@@ -67,7 +67,7 @@ export function NodeSearch({ content, name = 'Assistant', avatar, installedNodes
 
             {uninstalledNodesList.length > 0 && (
                 <div className={`space-y-3 ${installedNodesList.length > 0 ? 'mt-4' : ''}`}>
-                    <p>
+                    <p className="text-xs">
                         Uninstalled nodes, you can install them from github:
                     </p>
                     <div className="flex flex-wrap gap-2">

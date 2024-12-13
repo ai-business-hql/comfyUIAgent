@@ -14,7 +14,7 @@ const getApiKey = () => {
 
 export namespace WorkflowChatAPI {
 
-  export async function* streamInvokeServer(sessionId: string, prompt: string): AsyncGenerator<ChatResponse> {
+  export async function* streamInvokeServer(sessionId: string, prompt: string, intent: string | null = null): AsyncGenerator<ChatResponse> {
     try {
       const apiKey = getApiKey();
       
@@ -29,7 +29,8 @@ export namespace WorkflowChatAPI {
         body: JSON.stringify({
           session_id: sessionId,
           prompt: prompt,
-          mock: false
+          mock: false,
+          intent: intent
         }),
       });
 

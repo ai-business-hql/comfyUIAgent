@@ -32,16 +32,39 @@ export function AIMessage({ content, name = 'Assistant', avatar, format, onOptio
                   rehypeKatex
                 ]}
                 remarkPlugins={[remarkGfm, remarkMath]}
-                className="prose prose-sm prose-neutral prose-a:text-accent-foreground/50 break-words [&>*]:!my-1 leading-relaxed"
+                className="prose prose-xs prose-neutral prose-a:text-accent-foreground/50 break-words [&>*]:!my-1 leading-relaxed text-xs
+                           prose-headings:font-semibold
+                           prose-h1:text-base
+                           prose-h2:text-sm
+                           prose-h3:text-xs
+                           prose-h4:text-xs
+                           prose-p:text-xs
+                           prose-ul:text-xs
+                           prose-ol:text-xs
+                           prose-li:text-xs
+                           prose-code:text-xs
+                           prose-pre:text-xs"
                 components={{
                   p: ({ children }) => {
-                    return <p className="!my-0.5 leading-relaxed">{children}</p>
+                    return <p className="!my-0.5 leading-relaxed text-xs">{children}</p>
+                  },
+                  h1: ({ children }) => {
+                    return <h1 className="text-base font-semibold !my-1">{children}</h1>
+                  },
+                  h2: ({ children }) => {
+                    return <h2 className="text-sm font-semibold !my-1">{children}</h2>
+                  },
+                  h3: ({ children }) => {
+                    return <h3 className="text-xs font-semibold !my-1">{children}</h3>
+                  },
+                  h4: ({ children }) => {
+                    return <h4 className="text-xs font-semibold !my-1">{children}</h4>
                   },
                   table: ({ children }) => (
-                    <table className="border-solid border border-[#979797] w-[100%]">{children}</table>
+                    <table className="border-solid border border-[#979797] w-[100%] text-xs">{children}</table>
                   ),
                   th: ({ children }) => (
-                    <th className="border-solid bg-[#E5E7ED] dark:bg-[#FFFFFF] dark:text-[#000000] border border-[#979797] text-center pt-2">{children}</th>
+                    <th className="border-solid bg-[#E5E7ED] dark:bg-[#FFFFFF] dark:text-[#000000] border border-[#979797] text-center pt-2 text-xs">{children}</th>
                   ),
                   td: ({ children }) => {
                     if (Array.isArray(children) && children?.length > 0) {
@@ -57,8 +80,14 @@ export function AIMessage({ content, name = 'Assistant', avatar, format, onOptio
                       children = list;
                     }
                     return (
-                      <td className="border-solid border border-[#979797] text-center">{children}</td>
+                      <td className="border-solid border border-[#979797] text-center text-xs">{children}</td>
                     )
+                  },
+                  code: ({ children }) => {
+                    return <code className="text-xs bg-gray-100 rounded px-1">{children}</code>
+                  },
+                  pre: ({ children }) => {
+                    return <pre className="text-xs bg-gray-100 rounded p-2 overflow-x-auto">{children}</pre>
                   },
                 }}
               >

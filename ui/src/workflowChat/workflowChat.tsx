@@ -65,7 +65,7 @@ export default function WorkflowChat({ onClose, visible = true }: WorkflowChatPr
         const handleNodeSelection = () => {
             const selectedNodes = app.canvas.selected_nodes;
             if (Object.keys(selectedNodes ?? {}).length) {
-                // Get the first selected node's info
+                // Object.values(app.canvas.selected_nodes)[0].comfyClass
                 const nodeInfo = Object.values(selectedNodes)[0];
                 setSelectedNodeInfo(nodeInfo);
             } else {
@@ -168,6 +168,47 @@ export default function WorkflowChat({ onClose, visible = true }: WorkflowChatPr
         setInput(option);
     };
 
+    const handleSendMessageWithIntent = async (intent: string) => {
+        if (!sessionId || !selectedNodeInfo) return;
+        setLoading(true);
+
+        const userMessage: Message = {
+            id: generateUUID(),
+            role: "user",
+            content: selectedNodeInfo.comfyClass,
+        };
+
+        setMessages(prev => [...prev, userMessage]);
+
+        try {
+            for await (const response of WorkflowChatAPI.streamInvokeServer(sessionId, selectedNodeInfo.comfyClass, intent)) {
+                const aiMessage: Message = {
+                    id: generateUUID(),
+                    role: "ai",
+                    content: JSON.stringify(response),
+                    format: response.format,
+                    finished: response.finished,
+                    name: "Assistant"
+                };
+
+                setMessages(prev => {
+                    const lastMessage = prev[prev.length - 1];
+                    if (lastMessage.role === 'ai') {
+                        return [...prev.slice(0, -1), aiMessage];
+                    }
+                    return [...prev, aiMessage];
+                });
+
+                if (response.finished) {
+                    setLoading(false);
+                }
+            }
+        } catch (error) {
+            console.error('Error sending message:', error);
+            setLoading(false);
+        }
+    };
+
     return (
 
         <div className="fixed top-0 right-0 h-full w-1/3 shadow-lg bg-white
@@ -197,7 +238,8 @@ export default function WorkflowChat({ onClose, visible = true }: WorkflowChatPr
                     {selectedNodeInfo && (
                         <SelectedNodeInfo 
                             nodeInfo={selectedNodeInfo}
-                            onQueryClick={setInput}
+                            onSendWithIntent={handleSendMessageWithIntent}
+                            loading={loading}
                         />
                     )}
 

@@ -1,9 +1,10 @@
 interface SelectedNodeInfoProps {
     nodeInfo: any;
-    onQueryClick: (query: string) => void;
+    onSendWithIntent: (intent: string) => void;
+    loading: boolean;
 }
 
-export function SelectedNodeInfo({ nodeInfo, onQueryClick }: SelectedNodeInfoProps) {
+export function SelectedNodeInfo({ nodeInfo, onSendWithIntent, loading }: SelectedNodeInfoProps) {
     return (
         <div className="mb-3 p-3 rounded-md bg-gray-50 border border-gray-200 
                       transform transition-all duration-200 hover:shadow-md">
@@ -16,19 +17,22 @@ export function SelectedNodeInfo({ nodeInfo, onQueryClick }: SelectedNodeInfoPro
                         className="px-3 py-1 text-xs rounded-md bg-blue-50 
                                  hover:bg-blue-100 text-blue-700 transition-all 
                                  duration-200 hover:shadow-sm active:scale-95"
-                        onClick={() => onQueryClick(`Explain how to use node: ${nodeInfo.type}`)}>
+                        onClick={() => onSendWithIntent('node_explain')}
+                        disabled={loading}>
                         查询节点使用方法
                     </button>
                     <button
-                        className="px-3 py-1 text-xs rounded bg-green-100 hover:bg-green-200 text-green-700 transition-colors"
-                        onClick={() => onQueryClick(`What are the parameters for node: ${nodeInfo.type}`)}
-                    >
+                        className="px-3 py-1 text-xs rounded bg-green-100 
+                                 hover:bg-green-200 text-green-700 transition-colors"
+                        onClick={() => onSendWithIntent('node_params')}
+                        disabled={loading}>
                         查询参数
                     </button>
                     <button
-                        className="px-3 py-1 text-xs rounded bg-purple-100 hover:bg-purple-200 text-purple-700 transition-colors"
-                        onClick={() => onQueryClick(`Recommend downstream nodes for: ${nodeInfo.type}`)}
-                    >
+                        className="px-3 py-1 text-xs rounded bg-purple-100 
+                                 hover:bg-purple-200 text-purple-700 transition-colors"
+                        onClick={() => onSendWithIntent('node_downstream')}
+                        disabled={loading}>
                         下游节点推荐
                     </button>
                 </div>

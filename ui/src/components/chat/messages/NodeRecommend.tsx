@@ -22,10 +22,10 @@ export function NodeRecommend({ content, name = 'Assistant', avatar, installedNo
 
     return (
         // <BaseMessage avatar={avatar} name={name}>
-            <div className="rounded-lg bg-green-50 p-3 text-gray-700 text-sm break-words overflow-visible">
+            <div className="rounded-lg bg-green-50 p-3 text-gray-700 text-xs break-words overflow-visible">
                 {nodes.length > 0 && (
                     <div className="space-y-3">
-                        <p>Recommended downstream nodes that can be connected:</p>
+                        <p className="text-xs">Recommended downstream nodes that can be connected:</p>
                         <div className="flex flex-wrap gap-2">
                             {nodes.map((node: Node) => {
                                 const installed = isNodeInstalled(node.name);

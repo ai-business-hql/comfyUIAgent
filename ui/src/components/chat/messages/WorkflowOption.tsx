@@ -69,7 +69,7 @@ export function WorkflowOption({ content, name = 'Assistant', avatar, latestInpu
                                 )}
                                 <div className="flex-1 break-words flex flex-col justify-between">
                                     <div>
-                                        <h3 className="font-medium text-sm">{workflow.name}</h3>
+                                        <h3 className="font-medium text-xs">{workflow.name}</h3>
                                         {workflow.description && (
                                             <p className="text-gray-600 text-xs">{workflow.description}</p>
                                         )}

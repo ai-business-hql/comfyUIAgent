@@ -20,7 +20,7 @@ export function BaseMessage({ avatar, name, isUser = false, children }: BaseMess
                 </div>
             )}
             <div className={`flex-1 min-w-0 ${isUser ? 'text-right' : ''}`}>
-                <div className="text-sm text-gray-700">{name}</div>
+                <div className="text-xs text-gray-700">{name}</div>
                 {children}
             </div>
             {isUser && (
