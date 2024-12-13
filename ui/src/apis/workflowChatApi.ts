@@ -1,6 +1,7 @@
 import { config } from '../config'
 import { fetchApi } from "../Api";
 import { Message, ChatResponse, OptimizedWorkflowRequest, OptimizedWorkflowResponse } from "../types/types";
+import { generateUUID } from '../utils/uuid';
 
 const BASE_URL = config.apiBaseUrl
 
@@ -24,7 +25,8 @@ export namespace WorkflowChatAPI {
           'Content-Type': 'application/json',
           'accept': 'application/json',
           'Access-Control-Allow-Origin': '*',
-          'Authorization': `Bearer ${apiKey}`
+          'Authorization': `Bearer ${apiKey}`,
+          'trace-id': generateUUID(),
         },
         body: JSON.stringify({
           session_id: sessionId,
@@ -74,7 +76,8 @@ export namespace WorkflowChatAPI {
           'Content-Type': 'application/json',
           'accept': 'application/json',
           'Access-Control-Allow-Origin': '*',
-          'Authorization': `Bearer ${apiKey}`
+          'Authorization': `Bearer ${apiKey}`,
+          'trace-id': generateUUID(),
         },
         body: JSON.stringify({
           workflow_id: workflowId,
