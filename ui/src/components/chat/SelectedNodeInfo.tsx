@@ -31,7 +31,7 @@ export function SelectedNodeInfo({ nodeInfo, onSendWithIntent, loading }: Select
                     <button
                         className="px-3 py-1 text-xs rounded bg-purple-100 
                                  hover:bg-purple-200 text-purple-700 transition-colors"
-                        onClick={() => onSendWithIntent('node_downstream')}
+                        onClick={() => onSendWithIntent('downstream_subgraph_search')}
                         disabled={loading}>
                         下游节点推荐
                     </button>

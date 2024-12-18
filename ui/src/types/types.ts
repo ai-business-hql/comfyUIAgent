@@ -45,6 +45,13 @@ export interface NodeInfo {
   missing_nodes: Node[];
 }
 
+export interface Subgraph {
+    id: number;
+    name: string; 
+    description: string;
+    json: Record<string, any>;
+}
+
 export interface Workflow {
   id?: number;
   name?: string;

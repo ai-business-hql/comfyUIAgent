@@ -1,5 +1,4 @@
 import { app } from "../../../utils/comfyapp";
-import { BaseMessage } from './BaseMessage';
 import { useState } from 'react';
 import { ChatResponse, Node } from "../../../types/types";
 

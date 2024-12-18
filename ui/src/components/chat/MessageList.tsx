@@ -4,6 +4,7 @@ import { AIMessage } from "./messages/AIMessage";
 import { WorkflowOption } from "./messages/WorkflowOption";
 import { NodeSearch } from "./messages/NodeSearch";
 import { NodeRecommend } from "./messages/NodeRecommend";
+import { DownstreamSubgraphs } from "./messages/DownstreamSubgraphs";
 
 interface MessageListProps {
     messages: Message[];
@@ -32,6 +33,7 @@ export function MessageList({ messages, latestInput, onOptionClick, installedNod
                 const workflowExt = response.ext?.find(item => item.type === 'workflow');
                 const nodeExt = response.ext?.find(item => item.type === 'node');
                 const nodeRecommendExt = response.ext?.find(item => item.type === 'node_recommend');
+                const downstreamSubgraphsExt = response.ext?.find(item => item.type === 'downstream_subgraph_search');
                 
                 // 根据扩展类型添加对应组件
                 let ExtComponent = null;
@@ -57,6 +59,15 @@ export function MessageList({ messages, latestInput, onOptionClick, installedNod
                 } else if (nodeExt) {
                     ExtComponent = (
                         <NodeSearch
+                            content={message.content}
+                            name={message.name}
+                            avatar={avatar}
+                            installedNodes={installedNodes}
+                        />
+                    );
+                } else if (downstreamSubgraphsExt) {
+                    ExtComponent = (
+                        <DownstreamSubgraphs
                             content={message.content}
                             name={message.name}
                             avatar={avatar}
@@ -98,6 +109,7 @@ export function MessageList({ messages, latestInput, onOptionClick, installedNod
                 );
             } catch {
                 // 如果解析JSON失败,使用AIMessage
+                console.error('解析JSON失败', message.content);
                 return (
                     <AIMessage 
                         key={message.id}
