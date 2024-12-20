@@ -28,9 +28,48 @@ export function DownstreamSubgraphs({ content, name = 'Assistant', avatar, insta
                                         className="px-3 py-1.5 bg-blue-500 text-white rounded-md 
                                                      hover:bg-blue-600 transition-colors text-xs"
                                             onClick={() => {
-                                                localStorage.setItem('litegrapheditor_clipboard', JSON.stringify(node.json));
-                                                app.canvas.pasteFromClipboard();
-                                                // todo: 子图和上游节点连接
+                                                const nodes = node.json.nodes;
+                                                const links = node.json.links;
+                                                const selectedNode = Object.values(app.canvas.selected_nodes)[0];
+
+                                                if (selectedNode) {
+                                                    // 计算每个节点的入度
+                                                    const inDegrees = {};
+                                                    nodes.forEach(node => inDegrees[node.id] = 0);
+                                                    links.forEach(link => {
+                                                        const targetId = link['target_id'];
+                                                        inDegrees[targetId] = (inDegrees[targetId] || 0) + 1;
+                                                    });
+
+                                                    // 找到入度为0且类型匹配的起点节点
+                                                    const entryNodeId = nodes.find(node => 
+                                                        inDegrees[node.id] === 0 && 
+                                                        node.type === selectedNode.comfyClass
+                                                    )?.id;
+
+                                                    const nodeMap = {};
+                                                    // 将selectedNode作为入口节点
+                                                    if (entryNodeId) {
+                                                        nodeMap[entryNodeId] = selectedNode;
+                                                    }
+                                                    
+                                                    // 创建其他所有节点
+                                                    for (const node of nodes) {
+                                                        if (node.id !== entryNodeId) {
+                                                            nodeMap[node.id] = app.addNodeOnGraph({ name: node.type }, {pos: node.pos});
+                                                        }
+                                                    }
+
+                                                    // 处理所有连接
+                                                    for (const link of links) {
+                                                        const origin_node = nodeMap[link['origin_id']];
+                                                        const target_node = nodeMap[link['target_id']];
+                                                        
+                                                        if (origin_node && target_node) {
+                                                            origin_node.connect(link['origin_slot'], target_node, link['target_slot']);
+                                                        }
+                                                    }
+                                                }
                                             }}
                                             onMouseEnter={() => setHoveredNode(node.name)}
                                             onMouseLeave={() => setHoveredNode(null)}
