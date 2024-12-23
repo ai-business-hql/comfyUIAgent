@@ -42,10 +42,11 @@ export function DownstreamSubgraphs({ content, name = 'Assistant', avatar, insta
                                                     });
 
                                                     // 找到入度为0且类型匹配的起点节点
-                                                    const entryNodeId = nodes.find(node => 
+                                                    const entryNode = nodes.find(node => 
                                                         inDegrees[node.id] === 0 && 
                                                         node.type === selectedNode.comfyClass
-                                                    )?.id;
+                                                    );
+                                                    const entryNodeId = entryNode?.id;
 
                                                     const nodeMap = {};
                                                     // 将selectedNode作为入口节点
@@ -54,10 +55,18 @@ export function DownstreamSubgraphs({ content, name = 'Assistant', avatar, insta
                                                     }
                                                     
                                                     // 创建其他所有节点
-                                                    for (const node of nodes) {
-                                                        if (node.id !== entryNodeId) {
-                                                            nodeMap[node.id] = app.addNodeOnGraph({ name: node.type }, {pos: node.pos});
+                                                    app.canvas.emitBeforeChange();
+                                                    try {
+                                                        for (const node of nodes) {
+                                                            if (node.id !== entryNodeId) {
+                                                                const posEntryOld = entryNode?.pos;
+                                                                const posEntryNew = [selectedNode._pos[0], selectedNode._pos[1]];
+                                                                const nodePosNew = [node.pos[0] + posEntryNew[0] - posEntryOld[0], node.pos[1] + posEntryNew[1] - posEntryOld[1]];
+                                                                nodeMap[node.id] = app.addNodeOnGraph({ name: node.type }, {pos: nodePosNew});
+                                                            }
                                                         }
+                                                    } finally {
+                                                        app.canvas.emitAfterChange();
                                                     }
 
                                                     // 处理所有连接
