@@ -1,6 +1,6 @@
 import { config } from '../config'
 import { fetchApi } from "../Api";
-import { Message, ChatResponse, OptimizedWorkflowRequest, OptimizedWorkflowResponse } from "../types/types";
+import { Message, ChatResponse, OptimizedWorkflowRequest, OptimizedWorkflowResponse, Node } from "../types/types";
 import { generateUUID } from '../utils/uuid';
 
 const BASE_URL = config.apiBaseUrl
@@ -15,7 +15,7 @@ const getApiKey = () => {
 
 export namespace WorkflowChatAPI {
 
-  export async function* streamInvokeServer(sessionId: string, prompt: string, intent: string | null = null): AsyncGenerator<ChatResponse> {
+  export async function* streamInvokeServer(sessionId: string, prompt: string, intent: string | null = null, ext: any | null = null): AsyncGenerator<ChatResponse> {
     try {
       const apiKey = getApiKey();
       
@@ -32,7 +32,8 @@ export namespace WorkflowChatAPI {
           session_id: sessionId,
           prompt: prompt,
           mock: false,
-          intent: intent
+          intent: intent,
+          ext: ext
         }),
       });
 
@@ -95,6 +96,24 @@ export namespace WorkflowChatAPI {
       console.error('Error getting optimized workflow:', error);
       throw error;
     }
+  }
+
+  export async function batchGetNodeInfo(nodeTypes: string[]): Promise<any> {
+    const apiKey = getApiKey();
+    const response = await fetch(`${BASE_URL}/api/chat/get_node_info_by_types`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+        'trace-id': generateUUID(),
+      },
+      body: JSON.stringify({ node_types: nodeTypes }),
+    });
+    const result = await response.json();
+    if (!result.success) {
+      throw new Error(result.message || 'Failed to get node info by types');
+    }
+    return result.data as Node[];
   }
 }
 

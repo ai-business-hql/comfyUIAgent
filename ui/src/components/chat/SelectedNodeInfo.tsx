@@ -1,7 +1,40 @@
+import { app } from "../../utils/comfyapp";
+
 interface SelectedNodeInfoProps {
     nodeInfo: any;
-    onSendWithIntent: (intent: string) => void;
+    onSendWithIntent: (intent: string, ext?: any) => void;
     loading: boolean;
+}
+
+
+function getDownstreamSubgraphExt() {
+    const selectedNode = Object.values(app.canvas.selected_nodes)[0];
+    const nodeTypeSet = new Set<string>();
+    
+    function findUpstreamNodes(node: any, depth: number) {
+        if (!node || depth >= 3) return;
+        
+        if (node.inputs) {
+            for (const input of Object.values(node.inputs)) {
+                const linkId = (input as any).link;
+                if (linkId && app.graph.links[linkId]) {
+                    const originId = app.graph.links[linkId].origin_id;
+                    const originNode = app.graph._nodes_by_id[originId];
+                    if (originNode) {
+                        nodeTypeSet.add(originNode.type);
+                        findUpstreamNodes(originNode, depth + 1);
+                    }
+                }
+            }
+        }
+    }
+
+    if (selectedNode) {
+        findUpstreamNodes(selectedNode, 0);
+        return [{"type": "upstream_node_types", "data": Array.from(nodeTypeSet)}];
+    }
+
+    return null;
 }
 
 export function SelectedNodeInfo({ nodeInfo, onSendWithIntent, loading }: SelectedNodeInfoProps) {
@@ -31,7 +64,7 @@ export function SelectedNodeInfo({ nodeInfo, onSendWithIntent, loading }: Select
                     <button
                         className="px-3 py-1 text-xs rounded bg-purple-100 
                                  hover:bg-purple-200 text-purple-700 transition-colors"
-                        onClick={() => onSendWithIntent('downstream_subgraph_search')}
+                        onClick={() => onSendWithIntent('downstream_subgraph_search', getDownstreamSubgraphExt())}
                         disabled={loading}>
                         下游节点推荐
                     </button>

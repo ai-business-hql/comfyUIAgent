@@ -32,8 +32,9 @@ export default function WorkflowChat({ onClose, visible = true }: WorkflowChatPr
 
     useEffect(() => {
         const fetchInstalledNodes = async () => {
+            console.log('[WorkflowChat] Fetching installed nodes');
             const nodes = await getInstalledNodes();
-            console.log("installed nodes:", nodes);
+            console.log('[WorkflowChat] Received installed nodes:', nodes);
             setInstalledNodes(nodes);
         };
         fetchInstalledNodes();
@@ -168,7 +169,7 @@ export default function WorkflowChat({ onClose, visible = true }: WorkflowChatPr
         setInput(option);
     };
 
-    const handleSendMessageWithIntent = async (intent: string) => {
+    const handleSendMessageWithIntent = async (intent: string, ext?: any) => {
         if (!sessionId || !selectedNodeInfo) return;
         setLoading(true);
 
@@ -181,7 +182,7 @@ export default function WorkflowChat({ onClose, visible = true }: WorkflowChatPr
         setMessages(prev => [...prev, userMessage]);
 
         try {
-            for await (const response of WorkflowChatAPI.streamInvokeServer(sessionId, selectedNodeInfo.comfyClass, intent)) {
+            for await (const response of WorkflowChatAPI.streamInvokeServer(sessionId, selectedNodeInfo.comfyClass, intent, ext)) {
                 const aiMessage: Message = {
                     id: generateUUID(),
                     role: "ai",
@@ -209,6 +210,15 @@ export default function WorkflowChat({ onClose, visible = true }: WorkflowChatPr
         }
     };
 
+    const handleAddMessage = (message: Message) => {
+        console.log('[WorkflowChat] Adding new message:', message);
+        setMessages(prev => {
+            const newMessages = [...prev, message];
+            console.log('[WorkflowChat] Updated messages:', newMessages);
+            return newMessages;
+        });
+    };
+
     return (
 
         <div className="fixed top-0 right-0 h-full w-1/3 shadow-lg bg-white
@@ -231,6 +241,7 @@ export default function WorkflowChat({ onClose, visible = true }: WorkflowChatPr
                         latestInput={latestInput}
                         onOptionClick={handleOptionClick}
                         installedNodes={installedNodes}
+                        onAddMessage={handleAddMessage}
                     />
                 </div>
 

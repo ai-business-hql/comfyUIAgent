@@ -2,15 +2,18 @@ import { app } from "../../../utils/comfyapp";
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { ChatResponse, Node, Subgraph } from "../../../types/types";
 import { Network } from 'vis-network';
+import { WorkflowChatAPI } from "../../../apis/workflowChatApi";
+import { generateUUID } from "../../../utils/uuid";
 
 interface DownstreamSubgraphsProps {
     content: string;
     name?: string;
     avatar: string;
     installedNodes: any[];
+    onAddMessage?: (message: Message) => void;
 }
 
-export function DownstreamSubgraphs({ content, name = 'Assistant', avatar, installedNodes }: DownstreamSubgraphsProps) {
+export function DownstreamSubgraphs({ content, name = 'Assistant', avatar, installedNodes, onAddMessage }: DownstreamSubgraphsProps) {
     const response = JSON.parse(content) as ChatResponse;
     const [hoveredNode, setHoveredNode] = useState<string | null>(null);
     const networkRef = useRef<Network | null>(null);
@@ -124,6 +127,121 @@ export function DownstreamSubgraphs({ content, name = 'Assistant', avatar, insta
         networkRef.current = newNetwork;
     }, []);
 
+    const checkAndLoadSubgraph = async (node: Subgraph) => {
+        console.log('[DownstreamSubgraphs] Starting checkAndLoadSubgraph with node:', node);
+        const nodes = node.json.nodes;
+        const selectedNode = Object.values(app.canvas.selected_nodes)[0];
+
+        if (!selectedNode) {
+            console.warn('[DownstreamSubgraphs] No node selected');
+            alert("Please select a upstream node first before adding a subgraph.");
+            return;
+        }
+
+        // 检查所有节点是否已安装
+        const requiredNodeTypes = nodes.map(node => node.type);
+        const installedNodeTypes = installedNodes;
+        console.log('[DownstreamSubgraphs] Required node types:', requiredNodeTypes);
+        console.log('[DownstreamSubgraphs] Installed node types:', installedNodeTypes);
+        
+        const missingNodeTypes = requiredNodeTypes.filter(
+            type => !installedNodeTypes.includes(type)
+        );
+        console.log('[DownstreamSubgraphs] Missing node types:', missingNodeTypes);
+
+        if (missingNodeTypes.length > 0) {
+            try {
+                console.log('[DownstreamSubgraphs] Fetching info for missing nodes');
+                const nodeInfos = await WorkflowChatAPI.batchGetNodeInfo(missingNodeTypes);
+                console.log('[DownstreamSubgraphs] Received node infos:', nodeInfos);
+                
+                // 构造消息内容 - 修改为显示按钮列表格式
+                const messageContent = {
+                    text: `在加载graph到画布前，以下节点有待安装，请跳转到对应的github安装节点：`,
+                    ext: [{
+                        type: 'node_install_guide',
+                        data: nodeInfos.map(info => ({
+                            name: info.name,
+                            repository_url: info.github_url
+                        }))
+                    }]
+                };
+                console.log('[DownstreamSubgraphs] Created message content:', messageContent);
+
+                const aiMessage = {
+                    id: generateUUID(),
+                    role: 'ai',
+                    content: JSON.stringify(messageContent),
+                    format: 'markdown',
+                    name: 'Assistant',
+                    // 保存原始的subgraph信息，用于后续加载
+                    metadata: {
+                        pendingSubgraph: node
+                    }
+                };
+                console.log('[DownstreamSubgraphs] Created AI message:', aiMessage);
+
+                onAddMessage?.(aiMessage);
+                return;
+            } catch (error) {
+                console.error('[DownstreamSubgraphs] Error fetching node info:', error);
+                alert('Error checking required nodes. Please try again.');
+                return;
+            }
+        }
+
+        console.log('[DownstreamSubgraphs] All required nodes are installed, proceeding to load subgraph');
+        loadSubgraphToCanvas(node, selectedNode);
+    };
+
+    const loadSubgraphToCanvas = (node: Subgraph, selectedNode: any) => {
+        const nodes = node.json.nodes;
+        const links = node.json.links;
+        
+        const entryNode = nodes.find(node => node.id === 0);
+        const entryNodeId = entryNode?.id;
+
+        const nodeMap = {};
+        if (entryNodeId) {
+            nodeMap[entryNodeId] = selectedNode;
+        }
+        
+        // 创建其他所有节点
+        app.canvas.emitBeforeChange();
+        try {
+            for (const node of nodes) {
+                if (node.id !== entryNodeId) {
+                    const posEntryOld = entryNode?.pos;
+                    const posEntryNew = [selectedNode._pos[0], selectedNode._pos[1]];
+                    const nodePosNew = [
+                        node.pos[0] + posEntryNew[0] - posEntryOld[0], 
+                        node.pos[1] + posEntryNew[1] - posEntryOld[1]
+                    ];
+                    nodeMap[node.id] = app.addNodeOnGraph(
+                        { name: node.type }, 
+                        {pos: nodePosNew}
+                    );
+                }
+            }
+        } finally {
+            app.canvas.emitAfterChange();
+        }
+
+        // 处理所有连接
+        for (const link of links) {
+            const origin_node = nodeMap[link['origin_id']];
+            const target_node = nodeMap[link['target_id']];
+            
+            if (origin_node && target_node) {
+                origin_node.connect(
+                    link['origin_slot'], 
+                    target_node, 
+                    link['target_slot']
+                );
+            }
+        }
+    };
+
     return (
         <div className="rounded-lg bg-green-50 p-3 text-gray-700 text-xs break-words overflow-visible">
             {nodes.length > 0 && (
@@ -135,59 +253,7 @@ export function DownstreamSubgraphs({ content, name = 'Assistant', avatar, insta
                                 <button
                                     className="px-3 py-1.5 bg-blue-500 text-white rounded-md 
                                              hover:bg-blue-600 transition-colors text-xs"
-                                    onClick={() => {
-                                        const nodes = node.json.nodes;
-                                        const links = node.json.links;
-                                        const selectedNode = Object.values(app.canvas.selected_nodes)[0];
-
-                                        if (selectedNode) {
-                                            // 计算每个节点的入度
-                                            const inDegrees = {};
-                                            nodes.forEach(node => inDegrees[node.id] = 0);
-                                            links.forEach(link => {
-                                                const targetId = link['target_id'];
-                                                inDegrees[targetId] = (inDegrees[targetId] || 0) + 1;
-                                            });
-
-                                            // 找到入度为0且类型匹配的起点节点
-                                            const entryNode = nodes.find(node => 
-                                                inDegrees[node.id] === 0 && 
-                                                node.type === selectedNode.comfyClass
-                                            );
-                                            const entryNodeId = entryNode?.id;
-
-                                            const nodeMap = {};
-                                            // 将selectedNode作为入口节点
-                                            if (entryNodeId) {
-                                                nodeMap[entryNodeId] = selectedNode;
-                                            }
-                                            
-                                            // 创建其他所有节点
-                                            app.canvas.emitBeforeChange();
-                                            try {
-                                                for (const node of nodes) {
-                                                    if (node.id !== entryNodeId) {
-                                                        const posEntryOld = entryNode?.pos;
-                                                        const posEntryNew = [selectedNode._pos[0], selectedNode._pos[1]];
-                                                        const nodePosNew = [node.pos[0] + posEntryNew[0] - posEntryOld[0], node.pos[1] + posEntryNew[1] - posEntryOld[1]];
-                                                        nodeMap[node.id] = app.addNodeOnGraph({ name: node.type }, {pos: nodePosNew});
-                                                    }
-                                                }
-                                            } finally {
-                                                app.canvas.emitAfterChange();
-                                            }
-
-                                            // 处理所有连接
-                                            for (const link of links) {
-                                                const origin_node = nodeMap[link['origin_id']];
-                                                const target_node = nodeMap[link['target_id']];
-                                                
-                                                if (origin_node && target_node) {
-                                                    origin_node.connect(link['origin_slot'], target_node, link['target_slot']);
-                                                }
-                                            }
-                                        }
-                                    }}
+                                    onClick={() => checkAndLoadSubgraph(node)}
                                     onMouseEnter={() => setHoveredNode(node.name)}
                                     onMouseLeave={() => setHoveredNode(null)}
                                 >
