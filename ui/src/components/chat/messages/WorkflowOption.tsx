@@ -7,15 +7,18 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import rehypeExternalLinks from 'rehype-external-links';
+import { generateUUID } from "../../../utils/uuid";
 
 interface WorkflowOptionProps {
     content: string;
     name?: string;
     avatar: string;
     latestInput: string;
+    installedNodes: any[];
+    onAddMessage?: (message: any) => void;
 }
 
-export function WorkflowOption({ content, name = 'Assistant', avatar, latestInput }: WorkflowOptionProps) {
+export function WorkflowOption({ content, name = 'Assistant', avatar, latestInput, installedNodes, onAddMessage }: WorkflowOptionProps) {
     const response = JSON.parse(content) as ChatResponse;
     const workflows = response.ext?.find(item => item.type === 'workflow')?.data || [];
     
@@ -34,23 +37,80 @@ export function WorkflowOption({ content, name = 'Assistant', avatar, latestInpu
 
             // 加载优化后的工作流
             if (optimizedResult.workflow) {
-                app.loadGraphData(optimizedResult.workflow);
+                // 检查是否需要安装节点
+                const nodeTypes = new Set<string>();
+                for (const node of optimizedResult.workflow.nodes) {
+                    nodeTypes.add(node.type);
+                }
                 
-                // 应用优化后的参数 [节点id，节点名称，参数id，参数名称，参数默认值]
-                for (const [nodeId, nodeName, paramIndex, paramName, value] of optimizedResult.optimized_params) {
-                    //app.graph._nodes_by_id[30].widgets[3].value=8
-                    const widgets = app.graph._nodes_by_id[nodeId].widgets
-                    for (const widget of widgets) {
-                        if (widget.name === paramName) {
-                            widget.value = value
-                        }
+                console.log('[WorkflowOption] Required node types:', Array.from(nodeTypes));
+                console.log('[WorkflowOption] Installed nodes:', installedNodes);
+                
+                const missingNodeTypes = Array.from(nodeTypes).filter(
+                    type => !installedNodes.includes(type)
+                );
+                
+                console.log('[WorkflowOption] Missing node types:', missingNodeTypes);
+
+                if (missingNodeTypes.length > 0) {
+                    try {
+                        console.log('[WorkflowOption] Fetching info for missing nodes');
+                        const nodeInfos = await WorkflowChatAPI.batchGetNodeInfo(missingNodeTypes);
+                        console.log('[WorkflowOption] Received node infos:', nodeInfos);
+                        
+                        const messageContent = {
+                            text: ``,
+                            ext: [{
+                                type: 'node_install_guide',
+                                data: nodeInfos.map(info => ({
+                                    name: info.name,
+                                    repository_url: info.github_url
+                                }))
+                            }]
+                        };
+
+                        const aiMessage = {
+                            id: generateUUID(),
+                            role: 'ai',
+                            content: JSON.stringify(messageContent),
+                            format: 'markdown',
+                            name: 'Assistant',
+                            metadata: {
+                                pendingWorkflow: optimizedResult.workflow,
+                                optimizedParams: optimizedResult.optimized_params
+                            }
+                        };
+
+                        onAddMessage?.(aiMessage);
+                        return;
+                    } catch (error) {
+                        console.error('[WorkflowOption] Error fetching node info:', error);
+                        alert('Error checking required nodes. Please try again.');
+                        return;
                     }
                 }
-                app.graph.setDirtyCanvas(false, true)
+
+                // 如果所有节点都已安装，直接加载工作流
+                loadWorkflow(optimizedResult.workflow, optimizedResult.optimized_params);
             }
         } catch (error) {
             console.error('Failed to optimize workflow:', error);
         }
+    };
+
+    const loadWorkflow = (workflow: any, optimizedParams: any[]) => {
+        app.loadGraphData(workflow);
+        
+        // 应用优化后的参数 [节点id，节点名称，参数id，参数名称，参数默认值]
+        for (const [nodeId, nodeName, paramIndex, paramName, value] of optimizedParams) {
+            const widgets = app.graph._nodes_by_id[nodeId].widgets;
+            for (const widget of widgets) {
+                if (widget.name === paramName) {
+                    widget.value = value;
+                }
+            }
+        }
+        app.graph.setDirtyCanvas(false, true);
     };
     
     return (

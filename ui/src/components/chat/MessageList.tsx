@@ -59,6 +59,7 @@ export function MessageList({ messages, latestInput, onOptionClick, installedNod
                             avatar={avatar}
                             latestInput={latestInput}
                             installedNodes={installedNodes}
+                            onAddMessage={onAddMessage}
                         />
                     );
                 } else if (nodeRecommendExt) {
@@ -147,6 +148,20 @@ export function MessageList({ messages, latestInput, onOptionClick, installedNod
                                     } else {
                                         alert("Please select a upstream node first before adding a subgraph.");
                                     }
+                                } else if (message.metadata?.pendingWorkflow) {
+                                    const workflow = message.metadata.pendingWorkflow;
+                                    const optimizedParams = message.metadata.optimizedParams;
+                                    app.loadGraphData(workflow);
+                                    
+                                    for (const [nodeId, nodeName, paramIndex, paramName, value] of optimizedParams) {
+                                        const widgets = app.graph._nodes_by_id[nodeId].widgets;
+                                        for (const widget of widgets) {
+                                            if (widget.name === paramName) {
+                                                widget.value = value;
+                                            }
+                                        }
+                                    }
+                                    app.graph.setDirtyCanvas(false, true);
                                 }
                             }}
                         />

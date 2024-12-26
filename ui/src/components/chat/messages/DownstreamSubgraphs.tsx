@@ -157,7 +157,7 @@ export function DownstreamSubgraphs({ content, name = 'Assistant', avatar, insta
                 
                 // 构造消息内容 - 修改为显示按钮列表格式
                 const messageContent = {
-                    text: `在加载graph到画布前，以下节点有待安装，请跳转到对应的github安装节点：`,
+                    text: ``,
                     ext: [{
                         type: 'node_install_guide',
                         data: nodeInfos.map(info => ({

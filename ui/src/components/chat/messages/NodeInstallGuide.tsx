@@ -11,6 +11,7 @@ export function NodeInstallGuide({ content, onLoadSubgraph }: NodeInstallGuidePr
 
     return (
         <div>
+            <p>在加载graph到画布前，以下节点有待安装，请跳转到对应的github安装节点：</p>
             <div className="space-y-2">
                 {nodeInfos.map((node: any, index: number) => (
                     <button
@@ -23,6 +24,7 @@ export function NodeInstallGuide({ content, onLoadSubgraph }: NodeInstallGuidePr
                     </button>
                 ))}
             </div>
+            <p>安装完成后，请点击继续加载graph按钮，将graph加载到画布中：</p>
             <div className="mt-4">
                 <button
                     className="w-full px-3 py-2 bg-blue-500 text-white rounded-md 
