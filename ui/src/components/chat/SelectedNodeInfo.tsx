@@ -12,7 +12,7 @@ function getDownstreamSubgraphExt() {
     const nodeTypeSet = new Set<string>();
     
     function findUpstreamNodes(node: any, depth: number) {
-        if (!node || depth >= 3) return;
+        if (!node || depth >= 1) return;
         
         if (node.inputs) {
             for (const input of Object.values(node.inputs)) {
@@ -41,10 +41,8 @@ export function SelectedNodeInfo({ nodeInfo, onSendWithIntent, loading }: Select
     return (
         <div className="mb-3 p-3 rounded-md bg-gray-50 border border-gray-200 
                       transform transition-all duration-200 hover:shadow-md">
-            <h4 className="font-medium">Selected Node:</h4>
             <div className="text-sm">
-                <p>Type: {nodeInfo.type}</p>
-                <p>Title: {nodeInfo.title || 'Untitled'}</p>
+                <p>节点: {nodeInfo.type}</p>
                 <div className="flex gap-2 mt-2">
                     <button
                         className="px-3 py-1 text-xs rounded-md bg-blue-50 

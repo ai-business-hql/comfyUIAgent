@@ -176,13 +176,13 @@ export default function WorkflowChat({ onClose, visible = true }: WorkflowChatPr
         const userMessage: Message = {
             id: generateUUID(),
             role: "user",
-            content: selectedNodeInfo.comfyClass,
+            content: selectedNodeInfo.comfyClass || selectedNodeInfo.type,
         };
 
         setMessages(prev => [...prev, userMessage]);
 
         try {
-            for await (const response of WorkflowChatAPI.streamInvokeServer(sessionId, selectedNodeInfo.comfyClass, intent, ext)) {
+            for await (const response of WorkflowChatAPI.streamInvokeServer(sessionId, selectedNodeInfo.comfyClass || selectedNodeInfo.type, intent, ext)) {
                 const aiMessage: Message = {
                     id: generateUUID(),
                     role: "ai",

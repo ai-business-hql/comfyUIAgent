@@ -50,6 +50,7 @@ export interface Subgraph {
     name: string; 
     description: string;
     json: Record<string, any>;
+    tags: string[];
 }
 
 export interface Workflow {

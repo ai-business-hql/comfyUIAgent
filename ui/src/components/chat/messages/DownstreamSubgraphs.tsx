@@ -200,9 +200,10 @@ export function DownstreamSubgraphs({ content, name = 'Assistant', avatar, insta
         
         const entryNode = nodes.find(node => node.id === 0);
         const entryNodeId = entryNode?.id;
+        console.log('[DownstreamSubgraphs] Entry node ID:', entryNodeId);
 
         const nodeMap = {};
-        if (entryNodeId) {
+        if (entryNodeId !== null) {
             nodeMap[entryNodeId] = selectedNode;
         }
         
@@ -223,22 +224,21 @@ export function DownstreamSubgraphs({ content, name = 'Assistant', avatar, insta
                     );
                 }
             }
+            // 处理所有连接
+            for (const link of links) {
+                const origin_node = nodeMap[link['origin_id']];
+                const target_node = nodeMap[link['target_id']];
+                
+                if (origin_node && target_node) {
+                    origin_node.connect(
+                        link['origin_slot'], 
+                        target_node, 
+                        link['target_slot']
+                    );
+                }
+            }
         } finally {
             app.canvas.emitAfterChange();
-        }
-
-        // 处理所有连接
-        for (const link of links) {
-            const origin_node = nodeMap[link['origin_id']];
-            const target_node = nodeMap[link['target_id']];
-            
-            if (origin_node && target_node) {
-                origin_node.connect(
-                    link['origin_slot'], 
-                    target_node, 
-                    link['target_slot']
-                );
-            }
         }
     };
 
@@ -246,7 +246,6 @@ export function DownstreamSubgraphs({ content, name = 'Assistant', avatar, insta
         <div className="rounded-lg bg-green-50 p-3 text-gray-700 text-xs break-words overflow-visible">
             {nodes.length > 0 && (
                 <div className="space-y-3">
-                    <p className="text-xs">Recommended downstream subgraphs that can be connected:</p>
                     <div className="flex flex-wrap gap-2">
                         {nodes.map((node: Subgraph) => (
                             <div key={node.name} className="relative group">
@@ -259,6 +258,9 @@ export function DownstreamSubgraphs({ content, name = 'Assistant', avatar, insta
                                 >
                                     {node.name}
                                 </button>
+                                <p className="text-xs ml-3 text-gray-500">
+                                    [{node.tags.join(', ')}]
+                                </p>
                                 {hoveredNode === node.name && (
                                     <div 
                                         className="fixed transform -translate-y-full 
