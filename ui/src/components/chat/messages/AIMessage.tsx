@@ -89,6 +89,18 @@ export function AIMessage({ content, name = 'Assistant', avatar, format, onOptio
                   pre: ({ children }) => {
                     return <pre className="text-xs bg-gray-100 rounded p-2 overflow-x-auto">{children}</pre>
                   },
+                  img: ({ node, ...props }) => (
+                    <img
+                      {...props}
+                      loading="lazy"
+                      className="max-w-full h-auto"
+                      onError={(e) => {
+                        console.warn('Image failed to load:', props.src);
+                        e.currentTarget.style.display = 'none';
+                      }}
+                      crossOrigin="anonymous"
+                    />
+                  ),
                 }}
               >
                 {response.text}
