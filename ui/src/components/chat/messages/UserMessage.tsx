@@ -2,14 +2,13 @@ import { BaseMessage } from './BaseMessage';
 
 interface UserMessageProps {
     content: string;
-    name?: string;
 }
 
-export function UserMessage({ content, name = 'User' }: UserMessageProps) {
+export function UserMessage({ content }: UserMessageProps) {
     return (
-        <BaseMessage avatar="" name={name} isUser={true}>
-            <div className="inline-block rounded-lg bg-blue-50 p-3 text-gray-700 text-sm break-words">
-                <p>{content}</p>
+        <BaseMessage name="User" isUser={true}>
+            <div className="w-full rounded-lg border border-gray-700 p-4 text-gray-700 text-sm break-words">
+                <p className="whitespace-pre-wrap">{content}</p>
             </div>
         </BaseMessage>
     );

@@ -6,6 +6,7 @@ import { NodeSearch } from "./messages/NodeSearch";
 import { NodeRecommend } from "./messages/NodeRecommend";
 import { DownstreamSubgraphs } from "./messages/DownstreamSubgraphs";
 import { NodeInstallGuide } from "./messages/NodeInstallGuide";
+import { LoadingMessage } from "./messages/LoadingMessage";
 
 interface MessageListProps {
     messages: Message[];
@@ -13,18 +14,19 @@ interface MessageListProps {
     latestInput: string;
     installedNodes: any[];
     onAddMessage: (message: Message) => void;
+    loading?: boolean;
 }
 
 const getAvatar = (name?: string) => {
     return `https://ui-avatars.com/api/?name=${name || 'User'}&background=random`;
 };
 
-export function MessageList({ messages, latestInput, onOptionClick, installedNodes, onAddMessage }: MessageListProps) {
+export function MessageList({ messages, latestInput, onOptionClick, installedNodes, onAddMessage, loading }: MessageListProps) {
     const renderMessage = (message: Message) => {
         console.log('[MessageList] Rendering message:', message);
         
         if (message.role === 'user') {
-            return <UserMessage key={message.id} content={message.content} name={message.name} />;
+            return <UserMessage key={message.id} content={message.content} />;
         }
 
         if (message.role === 'ai' || message.role === 'tool') {
@@ -56,7 +58,6 @@ export function MessageList({ messages, latestInput, onOptionClick, installedNod
                         <WorkflowOption
                             content={message.content}
                             name={message.name}
-                            avatar={avatar}
                             latestInput={latestInput}
                             installedNodes={installedNodes}
                             onAddMessage={onAddMessage}
@@ -175,7 +176,6 @@ export function MessageList({ messages, latestInput, onOptionClick, installedNod
                             key={message.id}
                             content={message.content}
                             name={message.name}
-                            avatar={avatar}
                             format={message.format}
                             onOptionClick={onOptionClick}
                             extComponent={ExtComponent}
@@ -194,7 +194,6 @@ export function MessageList({ messages, latestInput, onOptionClick, installedNod
                         key={message.id}
                         content={message.content}
                         name={message.name}
-                        avatar={avatar}
                         format={message.format}
                         onOptionClick={onOptionClick}
                     />
@@ -208,7 +207,6 @@ export function MessageList({ messages, latestInput, onOptionClick, installedNod
                         key={message.id}
                         content={message.content}
                         name={message.name}
-                        avatar={avatar}
                         format={message.format}
                         onOptionClick={onOptionClick}
                     />
@@ -220,8 +218,9 @@ export function MessageList({ messages, latestInput, onOptionClick, installedNod
     };
 
     return (
-        <div className="grid gap-4">
+        <div className="flex flex-col gap-4 w-full">
             {messages.map(renderMessage)}
+            {loading && <LoadingMessage />}
         </div>
     );
 } 

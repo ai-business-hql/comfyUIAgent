@@ -242,6 +242,7 @@ export default function WorkflowChat({ onClose, visible = true }: WorkflowChatPr
                         onOptionClick={handleOptionClick}
                         installedNodes={installedNodes}
                         onAddMessage={handleAddMessage}
+                        loading={loading}
                     />
                 </div>
 

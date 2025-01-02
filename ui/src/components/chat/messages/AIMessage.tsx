@@ -15,7 +15,7 @@ interface AIMessageProps {
   extComponent?: React.ReactNode;
 }
 
-export function AIMessage({ content, name = 'Assistant', avatar, format, onOptionClick, extComponent }: AIMessageProps) {
+export function AIMessage({ content, name = 'Assistant', format, onOptionClick, extComponent }: AIMessageProps) {
   const markdownWrapper = useRef<HTMLDivElement | null>()
   const renderContent = () => {
     try {
@@ -107,7 +107,7 @@ export function AIMessage({ content, name = 'Assistant', avatar, format, onOptio
               </MemoizedReactMarkdown>
             </div>
           ) : response.text ? (
-            <p className="whitespace-pre-wrap">
+            <p className="whitespace-pre-wrap text-left">
               {response.text}
             </p>
           ) : null}
@@ -130,13 +130,13 @@ export function AIMessage({ content, name = 'Assistant', avatar, format, onOptio
         </div>
       );
     } catch {
-      return <p className="whitespace-pre-wrap">{content}</p>;
+      return <p className="whitespace-pre-wrap text-left">{content}</p>;
     }
   };
 
   return (
-    <BaseMessage avatar={avatar} name={name}>
-      <div className="rounded-lg bg-green-50 p-3 text-gray-700 text-sm break-words overflow-hidden">
+    <BaseMessage name={name}>
+      <div className="w-full rounded-lg bg-gray-50 p-4 text-gray-700 text-sm break-words overflow-hidden">
         {renderContent()}
       </div>
     </BaseMessage>
