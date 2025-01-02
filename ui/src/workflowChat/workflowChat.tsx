@@ -23,6 +23,8 @@ export default function WorkflowChat({ onClose, visible = true }: WorkflowChatPr
     const messageDivRef = useRef<HTMLDivElement>(null);
     const [selectedNodeInfo, setSelectedNodeInfo] = useState<any>(null);
     const [installedNodes, setInstalledNodes] = useState<any[]>([]);
+    const [width, setWidth] = useState(window.innerWidth / 3);
+    const [isResizing, setIsResizing] = useState(false);
 
     useEffect(() => {
         if (messageDivRef.current) {
@@ -219,10 +221,53 @@ export default function WorkflowChat({ onClose, visible = true }: WorkflowChatPr
         });
     };
 
-    return (
+    const handleMouseDown = (e: React.MouseEvent) => {
+        setIsResizing(true);
+        e.preventDefault();
+    };
 
-        <div className="fixed top-0 right-0 h-full w-1/3 shadow-lg bg-white
-                        transition-all duration-300 ease-in-out hover:shadow-xl text-gray-700" style={{ display: visible ? 'block' : 'none' }}>
+    useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            if (!isResizing) return;
+            
+            const newWidth = window.innerWidth - e.clientX;
+            const clampedWidth = Math.min(
+                Math.max(300, newWidth),
+                window.innerWidth * 0.8
+            );
+            
+            setWidth(clampedWidth);
+        };
+
+        const handleMouseUp = () => {
+            setIsResizing(false);
+        };
+
+        if (isResizing) {
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+        }
+
+        return () => {
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [isResizing]);
+
+    return (
+        <div 
+            className="fixed top-0 right-0 h-full shadow-lg bg-white
+                      transition-all duration-300 ease-in-out hover:shadow-xl text-gray-700" 
+            style={{ 
+                display: visible ? 'block' : 'none',
+                width: `${width}px`
+            }}
+        >
+            <div
+                className="absolute left-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-gray-300 active:bg-gray-400"
+                onMouseDown={handleMouseDown}
+            />
+            
             <div className="flex h-full flex-col">
                 <ChatHeader 
                     onClose={onClose}
