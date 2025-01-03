@@ -50,21 +50,21 @@ export function SelectedNodeInfo({ nodeInfo, onSendWithIntent, loading }: Select
                                  duration-200 hover:shadow-sm active:scale-95"
                         onClick={() => onSendWithIntent('node_explain')}
                         disabled={loading}>
-                        查询节点使用方法
+                        Node Usage
                     </button>
                     <button
                         className="px-3 py-1 text-xs rounded bg-green-100 
                                  hover:bg-green-200 text-green-700 transition-colors"
                         onClick={() => onSendWithIntent('node_params')}
                         disabled={loading}>
-                        查询参数
+                        Node Parameters
                     </button>
                     <button
                         className="px-3 py-1 text-xs rounded bg-purple-100 
                                  hover:bg-purple-200 text-purple-700 transition-colors"
                         onClick={() => onSendWithIntent('downstream_subgraph_search', getDownstreamSubgraphExt())}
                         disabled={loading}>
-                        下游节点推荐
+                        Downstream Node Recommend
                     </button>
                 </div>
             </div>
