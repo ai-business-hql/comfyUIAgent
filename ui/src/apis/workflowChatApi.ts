@@ -115,6 +115,37 @@ export namespace WorkflowChatAPI {
     }
     return result.data as Node[];
   }
+
+  export async function fetchMessages(sessionId: string): Promise<Message[]> {
+    try {
+      const apiKey = getApiKey();
+      const response = await fetch(`${BASE_URL}/api/chat/get_messages_by_session_id?session_id=${sessionId}`, {
+        method: 'GET',
+        headers: {
+          'accept': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+          'trace-id': generateUUID(),
+        }
+      });
+
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to fetch messages');
+      }
+
+      return result.data.map((msg: any) => ({
+        id: msg.id.toString(),
+        content: msg.content,
+        role: msg.role,
+        name: msg.role === 'ai' ? 'Assistant' : undefined,
+        format: msg.format || 'markdown',
+        finished: msg.finished
+      }));
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+      throw error;
+    }
+  }
 }
 
   

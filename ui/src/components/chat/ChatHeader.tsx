@@ -23,7 +23,7 @@ export function ChatHeader({ onClose, onClear, hasMessages }: ChatHeaderProps) {
         <div className="flex items-center justify-between border-b px-4 py-3 
                         bg-white border-gray-200 sticky top-0 z-10">
             <div className="flex items-center space-x-2">
-                <h3 className="text-lg font-medium text-gray-800">Chat</h3>
+                <h3 className="text-lg font-medium text-gray-800">copilot</h3>
                 <button
                     onClick={handleApiKeyClick}
                     className="p-1 hover:bg-gray-100 rounded"
