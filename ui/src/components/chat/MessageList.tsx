@@ -22,7 +22,7 @@ const getAvatar = (name?: string) => {
 };
 
 export function MessageList({ messages, latestInput, onOptionClick, installedNodes, onAddMessage, loading }: MessageListProps) {
-    const renderMessage = (message: Message) => {
+const renderMessage = (message: Message) => {
         console.log('[MessageList] Rendering message:', message);
         
         if (message.role === 'user') {
@@ -219,7 +219,7 @@ export function MessageList({ messages, latestInput, onOptionClick, installedNod
 
     return (
         <div className="flex flex-col gap-4 w-full">
-            {messages.map(renderMessage)}
+            {messages?.map(renderMessage)}
             {loading && <LoadingMessage />}
         </div>
     );

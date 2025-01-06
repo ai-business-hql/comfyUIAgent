@@ -1,6 +1,6 @@
 import { config } from '../config'
 import { fetchApi } from "../Api";
-import { Message, ChatResponse, OptimizedWorkflowRequest, OptimizedWorkflowResponse, Node } from "../types/types";
+import { Message, ChatResponse, OptimizedWorkflowRequest, OptimizedWorkflowResponse, Node, ExtItem } from "../types/types";
 import { generateUUID } from '../utils/uuid';
 
 const BASE_URL = config.apiBaseUrl
@@ -133,14 +133,23 @@ export namespace WorkflowChatAPI {
         throw new Error(result.message || 'Failed to fetch messages');
       }
 
-      return result.data.map((msg: any) => ({
-        id: msg.id.toString(),
-        content: msg.content,
-        role: msg.role,
-        name: msg.role === 'ai' ? 'Assistant' : undefined,
-        format: msg.format || 'markdown',
-        finished: msg.finished
-      }));
+      return result.data.map((msg: any) => {
+        console.log("msg.ext", msg.ext);
+        return {
+          id: msg.id.toString(),
+          content: msg.role === 'ai' ? JSON.stringify({
+            session_id: sessionId,
+            text: msg.content,
+            finished: msg.finished || false,
+            format: msg.format || 'markdown',
+            ext: msg.ext
+          }) : msg.content,
+          role: msg.role,
+          name: msg.role === 'ai' ? 'Assistant' : undefined,
+          format: msg.format || 'markdown',
+          finished: msg.finished
+        }
+      });
     } catch (error) {
       console.error('Error fetching messages:', error);
       throw error;
