@@ -8,6 +8,8 @@ import { SelectedNodeInfo } from "../components/chat/SelectedNodeInfo";
 import { MessageList } from "../components/chat/MessageList";
 import { generateUUID } from "../utils/uuid";
 import { getInstalledNodes, getObjectInfo } from "../apis/comfyApiCustom";
+import { UploadedImage } from '../components/chat/ChatInput';
+import React from "react";
 
 interface WorkflowChatProps {
     onClose?: () => void;
@@ -25,6 +27,7 @@ export default function WorkflowChat({ onClose, visible = true }: WorkflowChatPr
     const [installedNodes, setInstalledNodes] = useState<any[]>([]);
     const [width, setWidth] = useState(window.innerWidth / 3);
     const [isResizing, setIsResizing] = useState(false);
+    const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
 
     useEffect(() => {
         if (messageDivRef.current) {
@@ -116,7 +119,11 @@ export default function WorkflowChat({ onClose, visible = true }: WorkflowChatPr
         setInput("");
 
         try {
-            for await (const response of WorkflowChatAPI.streamInvokeServer(sessionId, input)) {
+            for await (const response of WorkflowChatAPI.streamInvokeServer(
+                sessionId, 
+                input, 
+                uploadedImages.map(img => img.file)
+            )) {
                 const aiMessage: Message = {
                     id: generateUUID(),
                     role: "ai",
@@ -142,6 +149,8 @@ export default function WorkflowChat({ onClose, visible = true }: WorkflowChatPr
         } catch (error) {
             console.error('Error sending message:', error);
             setLoading(false);
+        } finally {
+            setUploadedImages([]);
         }
     };
 
@@ -254,6 +263,28 @@ export default function WorkflowChat({ onClose, visible = true }: WorkflowChatPr
         };
     }, [isResizing]);
 
+    const handleUploadImages = (files: FileList) => {
+        const newImages = Array.from(files).map(file => ({
+            id: Math.random().toString(36).substr(2, 9),
+            file,
+            preview: URL.createObjectURL(file)
+        }));
+        setUploadedImages(prev => [...prev, ...newImages]);
+    };
+
+    const handleRemoveImage = (imageId: string) => {
+        setUploadedImages(prev => {
+            const newImages = prev.filter(img => img.id !== imageId);
+            return newImages;
+        });
+    };
+
+    React.useEffect(() => {
+        return () => {
+            uploadedImages.forEach(image => URL.revokeObjectURL(image.preview));
+        };
+    }, [uploadedImages]);
+
     return (
         <div 
             className="fixed top-0 right-0 h-full shadow-lg bg-white
@@ -306,6 +337,9 @@ export default function WorkflowChat({ onClose, visible = true }: WorkflowChatPr
                         onChange={handleMessageChange}
                         onSend={handleSendMessage}
                         onKeyPress={handleKeyPress}
+                        onUploadImages={handleUploadImages}
+                        uploadedImages={uploadedImages}
+                        onRemoveImage={handleRemoveImage}
                     />
                 </div>
             </div>

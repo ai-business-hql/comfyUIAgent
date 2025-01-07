@@ -15,9 +15,21 @@ const getApiKey = () => {
 
 export namespace WorkflowChatAPI {
 
-  export async function* streamInvokeServer(sessionId: string, prompt: string, intent: string | null = null, ext: any | null = null): AsyncGenerator<ChatResponse> {
+  export async function* streamInvokeServer(sessionId: string, prompt: string, images: File[] = [], intent: string | null = null, ext: any | null = null): AsyncGenerator<ChatResponse> {
     try {
       const apiKey = getApiKey();
+      
+      // Convert images to base64
+      const imagePromises = images.map(file => 
+        new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        })
+      );
+      
+      const base64Images = await Promise.all(imagePromises);
       
       const response = await fetch(`${BASE_URL}/api/chat/invoke`, {
         method: 'POST',
@@ -33,7 +45,11 @@ export namespace WorkflowChatAPI {
           prompt: prompt,
           mock: false,
           intent: intent,
-          ext: ext
+          ext: ext,
+          images: base64Images.map((base64, index) => ({
+            filename: images[index].name,
+            data: base64
+          }))
         }),
       });
 
