@@ -8,6 +8,7 @@ const BASE_URL = config.apiBaseUrl
 const getApiKey = () => {
     const apiKey = localStorage.getItem('chatApiKey');
     if (!apiKey) {
+        alert('API key is required. Please set your API key first.');
         throw new Error('API key is required. Please set your API key first.');
     }
     return apiKey;
@@ -76,6 +77,7 @@ export namespace WorkflowChatAPI {
       }
     } catch (error) {
       console.error('Error in streamInvokeServer:', error);
+      alert(error instanceof Error ? error.message : 'An error occurred while streaming');
       throw error;
     }
   }
@@ -104,12 +106,15 @@ export namespace WorkflowChatAPI {
 
       const result = await response.json();
       if (!result.success) {
-        throw new Error(result.message || 'Failed to get optimized workflow');
+        const message = result.message || 'Failed to get optimized workflow';
+        alert(message);
+        throw new Error(message);
       }
 
       return result.data as OptimizedWorkflowResponse;
     } catch (error) {
       console.error('Error getting optimized workflow:', error);
+      alert(error instanceof Error ? error.message : 'Failed to get optimized workflow');
       throw error;
     }
   }
@@ -127,7 +132,9 @@ export namespace WorkflowChatAPI {
     });
     const result = await response.json();
     if (!result.success) {
-      throw new Error(result.message || 'Failed to get node info by types');
+      const message = result.message || 'Failed to get node info by types';
+      alert(message);
+      throw new Error(message);
     }
     return result.data as Node[];
   }
@@ -146,7 +153,9 @@ export namespace WorkflowChatAPI {
 
       const result = await response.json();
       if (!result.success) {
-        throw new Error(result.message || 'Failed to fetch messages');
+        const message = result.message || 'Failed to fetch messages';
+        alert(message);
+        throw new Error(message);
       }
 
       return result.data.map((msg: any) => {
@@ -168,6 +177,7 @@ export namespace WorkflowChatAPI {
       });
     } catch (error) {
       console.error('Error fetching messages:', error);
+      alert(error instanceof Error ? error.message : 'Failed to fetch messages');
       throw error;
     }
   }
