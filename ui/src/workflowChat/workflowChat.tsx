@@ -193,7 +193,7 @@ export default function WorkflowChat({ onClose, visible = true }: WorkflowChatPr
         setMessages(prev => [...prev, userMessage]);
 
         try {
-            for await (const response of WorkflowChatAPI.streamInvokeServer(sessionId, selectedNodeInfo.comfyClass || selectedNodeInfo.type, intent, ext)) {
+            for await (const response of WorkflowChatAPI.streamInvokeServer(sessionId, selectedNodeInfo.comfyClass || selectedNodeInfo.type, [], intent, ext)) {
                 const aiMessage: Message = {
                     id: generateUUID(),
                     role: "ai",

@@ -21,7 +21,7 @@ export namespace WorkflowChatAPI {
       const apiKey = getApiKey();
       
       // Convert images to base64
-      const imagePromises = images.map(file => 
+      const imagePromises = (images || []).map(file => 
         new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
           reader.onloadend = () => resolve(reader.result as string);
