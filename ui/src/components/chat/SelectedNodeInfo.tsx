@@ -42,7 +42,7 @@ export function SelectedNodeInfo({ nodeInfo, onSendWithIntent, loading }: Select
         <div className="mb-3 p-3 rounded-md bg-gray-50 border border-gray-200 
                       transform transition-all duration-200 hover:shadow-md">
             <div className="text-sm">
-                <p>节点: {nodeInfo.type}</p>
+                <p>node: {nodeInfo.type}</p>
                 <div className="flex gap-2 mt-2">
                     <button
                         className="px-3 py-1 text-xs rounded-md bg-blue-50 
